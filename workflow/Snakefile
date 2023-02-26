@@ -1,0 +1,29 @@
+""" 
+Run the pipeline for SARS-CoV-2_aerosol_bottleneck project.
+Author: Will Hannon 
+"""
+
+#### ----------------------- Imports ----------------------- ####
+
+import pandas as pd 
+from os.path import join
+
+#### -------------------- Configuration -------------------- ####
+
+configfile: "config/snakemake.yml"
+
+#### ----------------------- Targets ----------------------- ####
+samples = list(set(pd.read_csv(config['samples']['file'])['Run']))
+
+rule all:
+    input: 
+
+#### ------------------------ Rules ------------------------ ####
+
+rule clean:
+    shell:
+        """
+        rm -rf logs/
+        rm -rf tmp/
+        rm -f slurm*.out
+        """
