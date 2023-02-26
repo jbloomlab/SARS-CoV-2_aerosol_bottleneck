@@ -2,3 +2,5 @@
 !.git*
 _*
 *.out
+env/
+results/
