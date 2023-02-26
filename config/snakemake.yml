@@ -2,7 +2,7 @@
 
 #### ------------------------- Samples ------------------------ ####
 
-samples: samples.csv
+samples: config/samples.csv
 
 #### ------------------------- Genomes ------------------------ ####
 
@@ -17,5 +17,9 @@ threads:
 
 #### -------------------------- Dirs ------------------------- ####
 
+fastq_dir: results/fastq
+trim_dir: results/trimmed
+align_dir: results/aligned
+
+qc_dir: results/qc
 reference_dir: results/reference
-annotation_dir: results/annotation

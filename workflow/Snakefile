@@ -13,10 +13,12 @@ from os.path import join
 configfile: "config/snakemake.yml"
 
 #### ----------------------- Targets ----------------------- ####
-samples = list(set(pd.read_csv(config['samples']['file'])['Run']))
+sample_df = pd.read_csv(config['samples'])
+samples = sample_df['Run'].unique()
 
 rule all:
     input: 
+        expand(join(config['align_dir'], "{sample}", "{sample}.sorted.bam"), sample=samples)
 
 #### ------------------------ Rules ------------------------ ####
 
@@ -27,3 +29,6 @@ rule clean:
         rm -rf tmp/
         rm -f slurm*.out
         """
+
+include: "rules/process-fastq.smk"
+include: "rules/align-fastq.smk"
