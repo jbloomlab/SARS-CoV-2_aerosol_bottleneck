@@ -3,6 +3,7 @@
 #### ------------------------- Samples ------------------------ ####
 
 samples: config/samples.csv
+primers: config/HKU_primers_positions.csv
 
 #### ------------------------- Genomes ------------------------ ####
 

@@ -32,3 +32,5 @@ rule clean:
 
 include: "rules/process-fastq.smk"
 include: "rules/align-fastq.smk"
+# include: "rules/filter-primers.smk"
+# include: "rules/call.variants.smk"

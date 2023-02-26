@@ -36,6 +36,7 @@ rule bwa_index:
         """
         cp {input} {output}
         bwa index -a {params.algorithm} {output}
+        samtools faidx {output}
         """
 
         
@@ -43,6 +44,9 @@ rule bwa_align:
     """ 
     Perform short read alignment of the trimmed 
     viral readas with `bwa-mem`.
+
+    Remove umapped and supplementary alignments
+    with `samtools view`.
     
     Sort the aligned reads with samtools sort.
     """
@@ -59,8 +63,8 @@ rule bwa_align:
         bwa mem -t {threads} \
             {input.genome} \
             {input.reads} | \
-            samtools view -bh | \
-            samtools sort -o {output.bam} - 
-        samtools index {output.bam}
+            samtools view -b -F 4 -F 2048 | \
+            samtools sort -o {output.bam} && \
+            samtools index {output.bam} 
         """
 
