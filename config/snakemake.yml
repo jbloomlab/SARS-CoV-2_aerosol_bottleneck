@@ -11,16 +11,32 @@ ref: ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/858/895/GCF_009858895.2_ASM9
 gff: ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/858/895/GCF_009858895.2_ASM985889v3/GCF_009858895.2_ASM985889v3_genomic.gff.gz
 contig: NC_045512.2
 
+#### -------------------------- Util -------------------------- ####
+
+varscan: https://github.com/dkoboldt/varscan/raw/master/VarScan.v2.4.0.jar
+snpeff: http://sourceforge.net/projects/snpeff/files/snpEff_latest_core.zip
+
 #### ------------------------- Params ------------------------ ####
 
 threads:
   max_cpu: 8
+
+variant_calling:
+  max_depth: 100000
+  min_baseQ: 25
+  min_mapQ: 0
+  min_coverage: 1
+  min_frequency: 0.005
+  min_obsv: 1
+  strand_filter: 1
 
 #### -------------------------- Dirs ------------------------- ####
 
 fastq_dir: results/fastq
 trim_dir: results/trimmed
 align_dir: results/aligned
+variant_dir: results/variants
 
 qc_dir: results/qc
 reference_dir: results/reference
+tool_dir: results/tools

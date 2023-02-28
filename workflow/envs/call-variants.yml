@@ -1,0 +1,17 @@
+channels:
+  - conda-forge
+  - bioconda
+  - anaconda
+dependencies:
+  - samtools>=1.11
+  - openjdk
+  - ivar
+  - lofreq
+  - gatk4
+  - python>=3.9
+  - jupyterlab
+  - pandas
+  - numpy
+  - biopython
+  - pysam
+  - pyvcf

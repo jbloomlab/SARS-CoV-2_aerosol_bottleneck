@@ -3,7 +3,7 @@
 This snakemake file uses BWA to align the trimmed reads to the wuhan reference genome.
 These alignments are then sorted and indexed with samtools.
 
-# Author: Will Hannon 
+Author: Will Hannon 
 """
 
 rule get_reference:
