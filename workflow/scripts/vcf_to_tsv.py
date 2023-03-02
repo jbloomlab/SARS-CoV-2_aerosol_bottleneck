@@ -89,7 +89,7 @@ def vcf_to_table(vcf_path, caller, annotations=False):
                 # There will be only a single sample per record
                 for sample in record.samples:
                     DP = sample['DP']
-                    AF = sample['FREQ'].strip('%') / 100
+                    AF = float(sample['FREQ'].strip('%')) / 100
                     RDF = sample['RDF']
                     RDR = sample['RDR']
                     ADF = sample['ADF']

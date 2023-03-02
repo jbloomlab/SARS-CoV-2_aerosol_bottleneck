@@ -176,7 +176,7 @@ rule format_ivar:
         # Read in the iVar variants 
         df = pd.read_csv(str(input.ivar), sep="\t")
         # Remove the failing variants
-        df = df[df['PVAL'] >= params.min_pval]
+        df = df[df['PVAL'] < params.min_pval]
         # Rename the columns to keep
         df.rename(columns={
                     'REF_RV': 'RDR',
@@ -316,7 +316,8 @@ rule merge_variants:
     """
     Aggregate the variant calls from each caller into a single table.
     Remove variants that fail universal filters.
-    Remove variants in masked sites (excluded sites table).
+    Remove variants in masked sites (excluded sites table from Lauring Lab).
+    https://github.com/lauringlab/SARS-CoV-2_VOC_transmission_bottleneck
     """
     input: 
         variants = [
@@ -350,4 +351,3 @@ rule merge_variants:
         # Write the output
         df.to_csv(str(output), sep="\t", index=False)
 
-# Add a rule to aggregate all variants into a single csv file

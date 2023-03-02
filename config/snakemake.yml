@@ -23,7 +23,7 @@ threads:
   max_cpu: 8
 
 variant_calling:
-  max_depth: 100000
+  max_depth: 10000
   min_baseQ: 25
   min_mapQ: 0
   min_coverage: 1
