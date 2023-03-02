@@ -36,6 +36,7 @@ fastq_dir: results/fastq
 trim_dir: results/trimmed
 align_dir: results/aligned
 variant_dir: results/variants
+coverage_dir: results/coverage
 
 qc_dir: results/qc
 reference_dir: results/reference

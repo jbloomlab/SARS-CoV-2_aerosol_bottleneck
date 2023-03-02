@@ -6,3 +6,17 @@ __default__:
   time: 0-2
   mem: 32000
   name: "{rule}"
+
+lofeq_calling:
+  cpus: 8
+  partition: campus-new
+  time: 0-4
+  mem: 32000
+  name: "{rule}"
+
+bwa_align:
+  cpus: 8
+  partition: campus-new
+  time: 0-4
+  mem: 32000
+  name: "{rule}"

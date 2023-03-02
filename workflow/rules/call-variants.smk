@@ -18,7 +18,7 @@ rule get_varscan:
 
 rule varscan_calling:
     """ 
-    SNP calling with Varscan 2 using an mpileup file generated with samtools.
+    SNP calling with Varscan v2 using an mpileup file generated with samtools.
     """
     input: 
         bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
@@ -127,9 +127,40 @@ rule lofeq_calling:
         """
 
 
+rule pysam_calling: 
+    """
+    Custom variant calling script using pysam htslib interface. 
+    """
+    input: 
+        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        genome = join(config['reference_dir'], 'index', 'SARS2.fa'),
+        gff = join(config['reference_dir'], 'SARS2.gff')
+    output:
+        variants = join(config['variant_dir'], "{sample}", "{sample}.pysam.formatted.tsv")
+    params: 
+        max_depth = config['variant_calling']['max_depth'],
+        min_baseQ = config['variant_calling']['min_baseQ'],
+        min_coverage = config['variant_calling']['min_coverage'],
+        min_frequency = config['variant_calling']['min_frequency']
+    conda:
+        '../envs/call-variants.yml'
+    shell:
+        """
+        python workflow/scripts/pysam_variant_caller.py \
+            -b {input.bam} \
+            -r {input.genome} \
+            -g {input.gff} \
+            -d {params.max_depth} \
+            -q {params.min_baseQ} \
+            -c {params.min_coverage} \
+            -f {params.min_frequency} \
+            -o {output.variants}
+        """
+
+
 rule get_SnpEff:
     """ 
-    Download and build SnpEff with annotations from gtf file. 
+    Download and build SnpEff with annotations from gff file. 
     """
     output: 
         join(config['tool_dir'], 'snpEff/snpEff.jar')
@@ -216,23 +247,96 @@ rule annotate_vcf:
         """
 
 
-rule vcf_to_table:
+rule vcf_to_tsv:
     """
-    Convert the VCF files to tables for easy data
-    analysis in R or Python.
+    Convert the VCF files to tables for downstream analysis.
     """
     input: 
         join(config['variant_dir'], "{sample}", "{sample}.{caller}.ann.vcf")
     output: 
-        join(config['variant_dir'], "{sample}", "{sample}.{caller}.tsv")
+        join(config['variant_dir'], "{sample}", "{sample}.{caller}.formatted.tsv")
     conda: 
         '../envs/call-variants.yml'
     shell:
         """
-        gatk VariantsToTable \
-            -V {input} \
-            -F CHROM -F POS -F QUAL -F REF -F ALT \
-            -F DP -F AF -F FILTER -GF DP \
-            -GF RD -GF FREQ -GF SDP -GF AD -F ANN \
-            -O {output}
+        python workflow/scripts/vcf_to_tsv.py \
+            -i {input} \
+            -c {wildcards.caller} \
+            -a \
+            -o {output}
         """
+
+
+rule format_ivar:
+    """
+    Format the ivar output to be compatible with the other variant callers.
+    """
+    input: 
+        ivar = join(config['variant_dir'], "{sample}", "{sample}.ivar.tsv")
+    output: 
+        formatted = join(config['variant_dir'], "{sample}", "{sample}.ivar.formatted.tsv")
+    run:
+        # Read in the iVar variants 
+        df = pd.read_csv(str(input.ivar), sep="\t")
+        # Remove the failing variants
+        df = df[df['PASS'] == True]
+        # Rename the columns to keep
+        df.rename(columns={
+                    'REF_RV': 'RDR',
+                    'ALT_RV': 'ADR', 
+                    'REF_QUAL': 'RBQ',
+                    'ALT_QUAL': 'ABQ',
+                    'TOTAL_DP': 'DP',
+                    'ALT_FREQ': 'AF'
+                    }, inplace=True)
+        # Add in missing columns
+        df['RDF'] = df['REF_DP'] - df['RDR']
+        df['ADF'] = df['ALT_DP'] - df['ADR']
+        df['GENE'] = df['GFF_FEATURE'].str.split(':').str[0]
+        df['CALLER'] = 'ivar'
+        # Filter out rows with indels
+        df = df[df['ALT'].str.len() <= 1]
+        # Drop unecessary columns 
+        df = df.drop(columns=[
+            'REGION', 'REF_DP', 'ALT_DP', 'PVAL',
+            'PASS', 'REF_CODON', 'ALT_CODON', 'GFF_FEATURE'])
+        # Drop duplicate rows
+        df.drop_duplicates(inplace=True)
+        # Write the output
+        df.to_csv(str(output.formatted), sep="\t", index=False)
+
+
+rule merge_variants:
+    """
+    Aggregate the variant calls from each caller into a single table.
+    Remove variants that fail universal filters.
+    Remove variants in masked sites (excluded sites table).
+    """
+    input: 
+        variants = [
+            join(config['variant_dir'], "{sample}", "{sample}.lofreq.formatted.tsv"),
+            join(config['variant_dir'], "{sample}", "{sample}.varscan.formatted.tsv"),
+            join(config['variant_dir'], "{sample}", "{sample}.ivar.formatted.tsv"),
+            join(config['variant_dir'], "{sample}", "{sample}.pysam.formatted.tsv")
+        ]
+    output:
+        join(config['variant_dir'], "{sample}", "{sample}.variants.tsv")
+    params:
+        exclude = config['exclude_sites'],
+        min_coverage = config['variant_calling']['min_coverage'],
+        min_frequency = config['variant_calling']['min_frequency'],
+        min_obsv = config['variant_calling']['min_obsv']
+    run:
+        # Read in each variant caller from input list
+        dfs = [pd.read_csv(f, sep="\t") for f in input.variants]
+        # Concatenate the dataframes
+        df = pd.concat(dfs, ignore_index=True)
+        # Add the sample name as a column
+        df['Run'] = wildcards.sample
+        # Write the output
+        df.to_csv(str(output), sep="\t", index=False)
+
+
+# Add a rule to filter out variants at excluded sites
+
+# Add a rule to aggregate all variants into a single csv file
