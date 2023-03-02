@@ -4,6 +4,7 @@
 
 samples: config/samples.csv
 primers: config/HKU_primers_positions.csv
+excluded: config/excluded_sites.tsv
 
 #### ------------------------- Genomes ------------------------ ####
 
@@ -29,6 +30,7 @@ variant_calling:
   min_frequency: 0.005
   min_obsv: 1
   strand_filter: 1
+  min_pval: 0.001
 
 #### -------------------------- Dirs ------------------------- ####
 

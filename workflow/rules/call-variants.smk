@@ -33,7 +33,8 @@ rule varscan_calling:
         min_coverage = config['variant_calling']['min_coverage'],
         min_frequency = config['variant_calling']['min_frequency'],
         min_obsv = config['variant_calling']['min_obsv'],
-        strand_filter = config['variant_calling']['strand_filter']
+        strand_filter = config['variant_calling']['strand_filter'],
+        min_pval = config['variant_calling']['min_pval']
     conda: 
         '../envs/call-variants.yml'
     shell: 
@@ -52,8 +53,73 @@ rule varscan_calling:
             --min-coverage {params.min_coverage} \
             --min-reads2 {params.min_obsv} \
             --min-avg-qual {params.min_baseQ} \
+            --p-value {params.min_pval} \
             --strand-filter {params.strand_filter} \
             --min-var-freq {params.min_frequency} > {output.variants}
+        """
+
+
+rule lofeq_calling: 
+    """
+    Call vaiants with lofreq using a probabilistic model. 
+    """
+    input: 
+        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        genome = join(config['reference_dir'], 'index', 'SARS2.fa')
+    output: 
+        variants = join(config['variant_dir'], "{sample}", "{sample}.lofreq.vcf")
+    params: 
+        max_depth = config['variant_calling']['max_depth'],
+        min_baseQ = config['variant_calling']['min_baseQ'],
+        min_mapQ = config['variant_calling']['min_mapQ'],
+        min_coverage = config['variant_calling']['min_coverage'],
+        min_pval = config['variant_calling']['min_pval']
+    threads: config['threads']['max_cpu']
+    conda: 
+        '../envs/call-variants.yml'
+    shell: 
+        """       
+        lofreq call-parallel --pp-threads {threads} \
+            -f {input.genome} \
+            -d {params.max_depth} \
+            -q {params.min_baseQ} \
+            -Q {params.min_baseQ} \
+            -m {params.min_mapQ} \
+            -C {params.min_coverage} \
+            -a {params.min_pval} \
+            {input.bam} \
+            -o {output}
+        """
+
+
+rule pysam_calling: 
+    """
+    Custom variant calling script using pysam htslib interface. 
+    """
+    input: 
+        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        genome = join(config['reference_dir'], 'index', 'SARS2.fa'),
+        gff = join(config['reference_dir'], 'SARS2.gff')
+    output:
+        variants = join(config['variant_dir'], "{sample}", "{sample}.pysam.formatted.tsv")
+    params: 
+        max_depth = config['variant_calling']['max_depth'],
+        min_baseQ = config['variant_calling']['min_baseQ'],
+        min_coverage = config['variant_calling']['min_coverage'],
+        min_frequency = config['variant_calling']['min_frequency']
+    conda:
+        '../envs/call-variants.yml'
+    shell:
+        """
+        python workflow/scripts/pysam_variant_caller.py \
+            -b {input.bam} \
+            -r {input.genome} \
+            -g {input.gff} \
+            -d {params.max_depth} \
+            -q {params.min_baseQ} \
+            -c {params.min_coverage} \
+            -f {params.min_frequency} \
+            -o {output.variants}
         """
 
 
@@ -96,66 +162,45 @@ rule ivar_calling:
         """
 
 
-rule lofeq_calling: 
+rule format_ivar:
     """
-    Call vaiants with lofreq using a probabilistic model. 
+    Format the ivar output to be compatible with the other variant callers.
     """
     input: 
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
-        genome = join(config['reference_dir'], 'index', 'SARS2.fa')
+        ivar = join(config['variant_dir'], "{sample}", "{sample}.ivar.tsv")
     output: 
-        variants = join(config['variant_dir'], "{sample}", "{sample}.lofreq.vcf")
-    params: 
-        max_depth = config['variant_calling']['max_depth'],
-        min_baseQ = config['variant_calling']['min_baseQ'],
-        min_mapQ = config['variant_calling']['min_mapQ'],
-        min_coverage = config['variant_calling']['min_coverage']
-    threads: config['threads']['max_cpu']
-    conda: 
-        '../envs/call-variants.yml'
-    shell: 
-        """       
-        lofreq call-parallel --pp-threads {threads} \
-            -f {input.genome} \
-            -d {params.max_depth} \
-            -q {params.min_baseQ} \
-            -Q {params.min_baseQ} \
-            -m {params.min_mapQ} \
-            -C {params.min_coverage} \
-            {input.bam} \
-            -o {output}
-        """
-
-
-rule pysam_calling: 
-    """
-    Custom variant calling script using pysam htslib interface. 
-    """
-    input: 
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
-        genome = join(config['reference_dir'], 'index', 'SARS2.fa'),
-        gff = join(config['reference_dir'], 'SARS2.gff')
-    output:
-        variants = join(config['variant_dir'], "{sample}", "{sample}.pysam.formatted.tsv")
-    params: 
-        max_depth = config['variant_calling']['max_depth'],
-        min_baseQ = config['variant_calling']['min_baseQ'],
-        min_coverage = config['variant_calling']['min_coverage'],
-        min_frequency = config['variant_calling']['min_frequency']
-    conda:
-        '../envs/call-variants.yml'
-    shell:
-        """
-        python workflow/scripts/pysam_variant_caller.py \
-            -b {input.bam} \
-            -r {input.genome} \
-            -g {input.gff} \
-            -d {params.max_depth} \
-            -q {params.min_baseQ} \
-            -c {params.min_coverage} \
-            -f {params.min_frequency} \
-            -o {output.variants}
-        """
+        formatted = join(config['variant_dir'], "{sample}", "{sample}.ivar.formatted.tsv")
+    params:
+        min_pval = config['variant_calling']['min_pval']
+    run:
+        # Read in the iVar variants 
+        df = pd.read_csv(str(input.ivar), sep="\t")
+        # Remove the failing variants
+        df = df[df['PVAL'] >= params.min_pval]
+        # Rename the columns to keep
+        df.rename(columns={
+                    'REF_RV': 'RDR',
+                    'ALT_RV': 'ADR', 
+                    'REF_QUAL': 'RBQ',
+                    'ALT_QUAL': 'ABQ',
+                    'TOTAL_DP': 'DP',
+                    'ALT_FREQ': 'AF'
+                    }, inplace=True)
+        # Add in missing columns
+        df['RDF'] = df['REF_DP'] - df['RDR']
+        df['ADF'] = df['ALT_DP'] - df['ADR']
+        df['GENE'] = df['GFF_FEATURE'].str.split(':').str[0]
+        df['CALLER'] = 'ivar'
+        # Filter out rows with indels
+        df = df[df['ALT'].str.len() <= 1]
+        # Drop unecessary columns 
+        df = df.drop(columns=[
+            'REGION', 'REF_DP', 'ALT_DP', 'PVAL',
+            'PASS', 'REF_CODON', 'ALT_CODON', 'GFF_FEATURE'])
+        # Drop duplicate rows
+        df.drop_duplicates(inplace=True)
+        # Write the output
+        df.to_csv(str(output.formatted), sep="\t", index=False)
 
 
 rule get_SnpEff:
@@ -267,45 +312,6 @@ rule vcf_to_tsv:
         """
 
 
-rule format_ivar:
-    """
-    Format the ivar output to be compatible with the other variant callers.
-    """
-    input: 
-        ivar = join(config['variant_dir'], "{sample}", "{sample}.ivar.tsv")
-    output: 
-        formatted = join(config['variant_dir'], "{sample}", "{sample}.ivar.formatted.tsv")
-    run:
-        # Read in the iVar variants 
-        df = pd.read_csv(str(input.ivar), sep="\t")
-        # Remove the failing variants
-        df = df[df['PASS'] == True]
-        # Rename the columns to keep
-        df.rename(columns={
-                    'REF_RV': 'RDR',
-                    'ALT_RV': 'ADR', 
-                    'REF_QUAL': 'RBQ',
-                    'ALT_QUAL': 'ABQ',
-                    'TOTAL_DP': 'DP',
-                    'ALT_FREQ': 'AF'
-                    }, inplace=True)
-        # Add in missing columns
-        df['RDF'] = df['REF_DP'] - df['RDR']
-        df['ADF'] = df['ALT_DP'] - df['ADR']
-        df['GENE'] = df['GFF_FEATURE'].str.split(':').str[0]
-        df['CALLER'] = 'ivar'
-        # Filter out rows with indels
-        df = df[df['ALT'].str.len() <= 1]
-        # Drop unecessary columns 
-        df = df.drop(columns=[
-            'REGION', 'REF_DP', 'ALT_DP', 'PVAL',
-            'PASS', 'REF_CODON', 'ALT_CODON', 'GFF_FEATURE'])
-        # Drop duplicate rows
-        df.drop_duplicates(inplace=True)
-        # Write the output
-        df.to_csv(str(output.formatted), sep="\t", index=False)
-
-
 rule merge_variants:
     """
     Aggregate the variant calls from each caller into a single table.
@@ -322,7 +328,7 @@ rule merge_variants:
     output:
         join(config['variant_dir'], "{sample}", "{sample}.variants.tsv")
     params:
-        exclude = config['exclude_sites'],
+        exclude = config['excluded'],
         min_coverage = config['variant_calling']['min_coverage'],
         min_frequency = config['variant_calling']['min_frequency'],
         min_obsv = config['variant_calling']['min_obsv']
@@ -333,10 +339,15 @@ rule merge_variants:
         df = pd.concat(dfs, ignore_index=True)
         # Add the sample name as a column
         df['Run'] = wildcards.sample
+        # Apply final filters that are universal to all callers
+        df = df[df['AF'] >= params.min_frequency]
+        df = df[df['DP'] >= params.min_coverage]
+        df[df['ADF'] + df['ADR'] >= params.min_obsv]
+        # Read in the excluded sites table (from the Lauring lab)
+        exclude = pd.read_csv(params.exclude, sep="\t")
+        # Remove variants where the position is in the excluded sites table
+        df = df[~df['POS'].isin(exclude['POS'])]
         # Write the output
         df.to_csv(str(output), sep="\t", index=False)
-
-
-# Add a rule to filter out variants at excluded sites
 
 # Add a rule to aggregate all variants into a single csv file
