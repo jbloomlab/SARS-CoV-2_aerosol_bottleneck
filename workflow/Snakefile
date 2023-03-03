@@ -14,8 +14,7 @@ configfile: "config/snakemake.yml"
 
 #### ----------------------- Targets ----------------------- ####
 sample_df = pd.read_csv(config['samples'])
-# samples = sample_df['Run'].unique()
-samples = ["HL-2162", "NGS-01", "NGS-02", "NGS-03"]
+samples = sample_df['Run'].unique()
 
 rule all:
     input: 
