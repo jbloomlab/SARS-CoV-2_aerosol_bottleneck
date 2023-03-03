@@ -8,7 +8,7 @@ This workflow is based on the following resources:
     - https://doi.org/10.1038/s41467-023-36001-5
     - https://github.com/lauringlab/SARS-CoV-2_VOC_transmission_bottleneck
 
-# Author: Will Hannon 
+Author: Will Hannon 
 """
 
 rule make_primer_fasta:
@@ -20,23 +20,11 @@ rule make_primer_fasta:
     output:
         fasta = join(config['reference_dir'], "primers", "primers.fasta")
     run:
-        primer_positions = pd.read_csv(input.primers)
+        primer_pairs = pd.read_csv(input.primers)
         with open(output.fasta, "w") as f:
-            for i, row in primer_positions.iterrows():
-                f.write(f">{row['start']}_{row['end']}_{row['chromosome'][0:-2]}_{row['direction']}" + "\n")
-                f.write(f"{row['sequence']}" + "\n")
-
-
-rule make_primer_pairs:
-    """
-    TODO: Get the primer names for Hui-Ling's HKU Primer Set.
-    """
-    input:
-        primers = config['primers']
-    output:
-        tsv = join(config['reference_dir'], "primers", "pairs.tsv")
-    run:
-        primer_positions = pd.read_csv(input.primers)
+            for i, row in primer_pairs.iterrows():
+                f.write(f">{row['Name']}" + "\n")
+                f.write(f"{row['Sequence']}" + "\n")
 
 
 rule make_primer_bed:
@@ -67,17 +55,38 @@ rule make_primer_bed:
         """
 
 
+rule test_primer_trimming:
+    """
+    Debugging rule to test primer trimming.
+    """
+    input:
+        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam")
+    output:
+        bam = join(config['align_dir'], "{sample}", "{sample}.subsampled.sorted.bam"),
+        bai = join(config['align_dir'], "{sample}", "{sample}.subsampled.sorted.bam.bai")
+    conda:
+        "../envs/filter-primers.yml"
+    shell:
+        """
+        samtools view -s 0.01 -b {input.bam} | \
+            samtools sort -o {output.bam} && \
+            samtools index {output.bam}
+        """
+
+
 rule trim_primers:
     """
     Use iVar to trim the primer sequences from the aligned reads.
     """
     input:
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
-        bed = join(config['reference_dir'], "primers", "primers.bed")
+        # bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        bed = join(config['reference_dir'], "primers", "primers.bed"),
+        pairs = config['primer_pairs'],
+        bam = join(config['align_dir'], "{sample}", "{sample}.subsampled.sorted.bam")
     output:
-        bam = join(config['primertrim_dir'], "{sample}", "{sample}.trimmed.bam")
+        bam = join(config['align_dir'], "{sample}", "{sample}.trimmed.bam")
     log:
-        join(config['qc_dir'], "{sample}", "{sample}.ivar.log")
+        join(config['qc_dir'], "{sample}", "{sample}.ivar.trim.log")
     conda: 
         "../envs/filter-primers.yml"
     shell:
@@ -85,6 +94,8 @@ rule trim_primers:
         ivar trim \
             -i {input.bam} \
             -b {input.bed} \
+            -f {input.pairs} \
+            -e \
             -p {output.bam} \
             &> {log}
         """
@@ -95,10 +106,10 @@ rule sort_trimmed_bams:
     Sort and index the primer trimmed bam files with samtools.
     """
     input:
-        bam = join(config['primertrim_dir'], "{sample}", "{sample}.trimmed.bam")
+        bam = join(config['align_dir'], "{sample}", "{sample}.trimmed.bam")
     output:
-        bam = join(config['primertrim_dir'], "{sample}", "{sample}.trimmed.sorted.bam"),
-        bai = join(config['primertrim_dir'], "{sample}", "{sample}.trimmed.sorted.bam.bai")
+        bam = join(config['align_dir'], "{sample}", "{sample}.trimmed.sorted.bam"),
+        bai = join(config['align_dir'], "{sample}", "{sample}.trimmed.sorted.bam.bai")
     conda: 
         "../envs/filter-primers.yml"
     shell:
@@ -117,15 +128,15 @@ rule get_sample_consensus:
     aligned and primer-trimmed reads.
     """
     input:
-        bam = join(config['primertrim_dir'], "{sample}", "{sample}.trimmed.sorted.bam"),
+        bam = join(config['align_dir'], "{sample}", "{sample}.trimmed.sorted.bam"),
         genome = join(config['reference_dir'], 'index', 'SARS2.fa')
     output:
-        consensus = join(config['ivar_dir'], "{sample}", "consensus", "{sample}.consensus.fa")
+        consensus = join(config['consensus_dir'], "{sample}", "{sample}.consensus.fa")
     params:
-        max_depth = 100000,
-        min_depth = 10,
-        min_qual = 0,
-        freq_threshold = 0
+        max_depth = config['consensus_calling']['max_depth'],
+        min_depth = config['consensus_calling']['min_depth'],
+        min_baseQ = config['consensus_calling']['min_baseQ'],
+        freq_threshold = config['consensus_calling']['freq_threshold']
     conda: 
         "../envs/filter-primers.yml"
     shell:
@@ -140,7 +151,7 @@ rule get_sample_consensus:
         ivar consensus \
             -p {output.consensus} \
             -n N \
-            -q {params.min_qual} \
+            -q {params.min_baseQ} \
             -t {params.freq_threshold} \
             -m {params.min_depth}
         """
@@ -151,9 +162,9 @@ rule index_consensus:
     Index the sample specific consensus sequence with bwa and samtools.
     """
     input:
-        join(config['ivar_dir'], "{sample}", "consensus", "{sample}.consensus.fa")
+        join(config['consensus_dir'], "{sample}", "{sample}.consensus.fa")
     output:
-        join(config['ivar_dir'], "{sample}", "consensus", "index", "{sample}.consensus.fa")
+        join(config['consensus_dir'], "{sample}", "index", "{sample}.consensus.fa")
     params: 
         algorithm="bwtsw"
     conda: 
@@ -172,10 +183,10 @@ rule make_consensus_primer_bed:
     """
     input:
         fasta = join(config['reference_dir'], "primers", "primers.fasta"),
-        genome = join(config['ivar_dir'], "{sample}", "consensus", "index", "{sample}.consensus.fa")
+        genome = join(config['consensus_dir'], "{sample}", "index", "{sample}.consensus.fa")
     output:
-        bam = join(config['ivar_dir'], "{sample}", "primers", "{sample}.primers.bam"),
-        bed = join(config['ivar_dir'], "{sample}", "primers", "{sample}.primers.bed")
+        bam = join(config['consensus_dir'], "{sample}", "primers", "{sample}.primers.bam"),
+        bed = join(config['consensus_dir'], "{sample}", "primers", "{sample}.primers.bed")
     threads:
         config['threads']['max_cpu']
     conda: 
@@ -199,31 +210,29 @@ rule call_primer_mismatches:
     Use iVar to identify sample specific primer mismatches.
     """
     input:
-        bam = join(config['ivar_dir'], "{sample}", "primers", "{sample}.primers.bam"),
-        consensus = join(config['ivar_dir'], "{sample}", "consensus", "index", "{sample}.consensus.fa")
+        bam = join(config['consensus_dir'], "{sample}", "primers", "{sample}.primers.bam"),
+        genome = join(config['consensus_dir'], "{sample}", "index", "{sample}.consensus.fa")
     output:
-        mismatches = join(config['ivar_dir'], "{sample}", "mismatches", "{sample}.mismatches.tsv")
+        mismatches = join(config['consensus_dir'], "{sample}", "primers", "{sample}.mismatches.tsv")
     params:
-        max_depth = 100000,
-        min_base_qual = 30,
-        min_map_qual = 20,
-        freq_threshold = 0.02
+        max_depth = config['primer_calling']['max_depth'],
+        min_baseQ = config['primer_calling']['min_baseQ'],
+        min_mapQ = config['primer_calling']['min_mapQ'],
+        min_frequency = config['primer_calling']['min_frequency']
     conda: 
         "../envs/filter-primers.yml"
     shell:
         """
         samtools mpileup \
-            -aa \
             -A \
             -d {params.max_depth} \
-            --reference {input.consensus} \
-            -Q {params.min_base_qual} \
-            -q {params.min_map_qual} \
-            -F 0 \
+            --reference {input.genome} \
+            -Q {params.min_baseQ} \
+            -q {params.min_mapQ} \
             {input.bam} | \
         ivar variants \
             -p {output.mismatches} \
-            -t {params.freq_threshold}
+            -t {params.min_frequency}
         """
 
 
@@ -232,11 +241,11 @@ rule mask_primer_mismatches:
     Use iVar to mask primer mismatches.
     """
     input:
-        mismatches = join(config['ivar_dir'], "{sample}", "mismatches", "{sample}.mismatches.tsv"),
-        bed = join(config['ivar_dir'], "{sample}", "primers", "{sample}.primers.bed"),
-        pairs = join(config['reference_dir'], "primers", "pairs.tsv")
+        mismatches = join(config['consensus_dir'], "{sample}", "primers", "{sample}.mismatches.tsv"),
+        bed = join(config['consensus_dir'], "{sample}", "primers", "{sample}.primers.bed"),
+        pairs = config['primer_pairs']
     output:
-        mask = join(config['ivar_dir'], "{sample}", "mask", "{sample}.masked.primers.txt")
+        mask = join(config['consensus_dir'], "{sample}", "primers", "{sample}.masked.primers.txt")
     conda: 
         "../envs/filter-primers.yml"
     shell:
@@ -254,28 +263,44 @@ rule remove_primer_mismatches:
     Use iVar to remove reads with primer mismatches from trimmed bam file.
     """
     input:
-        bam = join(config['primertrim_dir'], "{sample}", "{sample}.trimmed.sorted.bam"),
-        bed = join(config['ivar_dir'], "{sample}", "primers", "{sample}.primers.bed"),
-        mask = join(config['ivar_dir'], "{sample}", "mask", "{sample}.masked.primers.txt")
+        bam = join(config['align_dir'], "{sample}", "{sample}.trimmed.sorted.bam"),
+        bed = join(config['consensus_dir'], "{sample}", "primers", "{sample}.primers.bed"),
+        mask = join(config['consensus_dir'], "{sample}", "primers", "{sample}.masked.primers.txt")
     output:
-        bam = join(config['ivar_dir'], "{sample}", "{sample}.mismatched.trimmed.sorted.bam"),
-        bai = join(config['ivar_dir'], "{sample}", "{sample}.mismatched.trimmed.sorted.bai")
-    params:
-        remove_sites_1 = "data/ivar_output/removed/{sample}_1.masked",
-        temp_1 = "data/ivar_output/removed/{sample}_1.tmp"
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.bam"),
+        # bam = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"),
+        # bai = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bai")
     conda: 
         "../envs/filter-primers.yml"
+    log:
+       join(config['qc_dir'], "{sample}", "{sample}.ivar.removereads.log")
     shell:
         """
         ivar removereads \
             -i {input.bam} \
-            -p {params.remove_sites_1} \
+            -p {output.bam} \
             -t {input.mask} \
-            -b {input.bed}  
+            -b {input.bed} \
+            &> {log}
+        """
 
+
+rule sort_masked_bams:
+    """
+    Sort and index the primer mismatch masked bam files with samtools.
+    """
+    input:
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.bam")
+    output:
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"),
+        bai = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam.bai")
+    conda: 
+        "../envs/filter-primers.yml"
+    shell:
+        """
         samtools sort \
-            -T {params.temp_1} \
             -o {output.bam} \
-            {params.remove_sites_1}.bam && \
-        samtools index {output.bam}
+            {input.bam} && \
+        samtools index \
+            {output.bam}
         """

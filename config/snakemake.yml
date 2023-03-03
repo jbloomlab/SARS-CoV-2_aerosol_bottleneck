@@ -3,7 +3,8 @@
 #### ------------------------- Samples ------------------------ ####
 
 samples: config/samples.csv
-primers: config/HKU_primers_positions.csv
+primers: config/primers.csv
+primer_pairs: config/primer_pairs.tsv
 excluded: config/excluded_sites.tsv
 
 #### ------------------------- Genomes ------------------------ ####
@@ -32,6 +33,18 @@ variant_calling:
   strand_filter: 1
   min_pval: 0.001
 
+consensus_calling:
+  max_depth: 100000
+  min_depth: 10
+  min_baseQ: 0
+  freq_threshold: 0
+
+primer_calling:
+  max_depth: 100000
+  min_baseQ: 20
+  min_mapQ: 0
+  min_frequency: 0.03
+
 #### -------------------------- Dirs ------------------------- ####
 
 fastq_dir: results/fastq
@@ -39,6 +52,7 @@ trim_dir: results/trimmed
 align_dir: results/aligned
 variant_dir: results/variants
 coverage_dir: results/coverage
+consensus_dir: results/consensus
 
 qc_dir: results/qc
 reference_dir: results/reference
