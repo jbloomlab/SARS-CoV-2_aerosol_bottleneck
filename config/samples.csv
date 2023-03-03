@@ -1,118 +1,118 @@
-Run,Replicate,Animal,Pair,Experiment,Condition,DPI,DPC,TCID50,RNA_Copies,R1,R2
-HL-2162,1,stock,,,isolate stock,,,,,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/HL-2162_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/HL-2162_2.fastq.gz
-NGS-01,1,1D1,donor,10.1,no impactor,2,2,5.956,10.88848194,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-01_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-01_2.fastq.gz
-NGS-02,2,1D1,donor,10.1,no impactor,2,2,5.956,10.88848194,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-02_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-02_2.fastq.gz
-NGS-03,1,1D2,donor,10.1,no impactor,2,2,5.841,11.16475371,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-03_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-03_2.fastq.gz
-NGS-04,2,1D2,donor,10.1,no impactor,2,2,5.841,11.16475371,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-04_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-04_2.fastq.gz
-NGS-05,1,1C1,recipient,10.1,no impactor,4,3,6.615,11.02167476,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-05_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-05_2.fastq.gz
-NGS-06,2,1C1,recipient,10.1,no impactor,4,3,6.615,11.02167476,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-06_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-06_2.fastq.gz
-NGS-07,1,1C2,recipient,10.1,no impactor,4,3,6.289,11.15265077,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-07_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-07_2.fastq.gz
-NGS-08,2,1C2,recipient,10.1,no impactor,4,3,6.289,11.15265077,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-08_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-08_2.fastq.gz
-NGS-09,1,2D1,donor,10.2,no impactor,2,2,5.789,10.91537547,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-09_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-09_2.fastq.gz
-NGS-10,2,2D1,donor,10.2,no impactor,2,2,5.789,10.91537547,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-10_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-10_2.fastq.gz
-NGS-11,1,2D2,donor,10.2,no impactor,2,2,5.956,11.09856358,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-11_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-11_2.fastq.gz
-NGS-12,2,2D2,donor,10.2,no impactor,2,2,5.956,11.09856358,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-12_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-12_2.fastq.gz
-NGS-13,1,2C1,recipient,10.2,no impactor,4,3,6.206,11.14536046,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-13_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-13_2.fastq.gz
-NGS-14,2,2C1,recipient,10.2,no impactor,4,3,6.206,11.14536046,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-14_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-14_2.fastq.gz
-NGS-15,1,2C2,recipient,10.2,no impactor,4,3,6.289,10.648909,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-15_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-15_2.fastq.gz
-NGS-16,2,2C2,recipient,10.2,no impactor,4,3,6.289,10.648909,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-16_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-16_2.fastq.gz
-NGS-17,1,3D1,donor,10.3,5 um impactor,2,2,6.071,11.04171699,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-017_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-017_2.fastq.gz
-NGS-18,2,3D1,donor,10.3,5 um impactor,2,2,6.071,11.04171699,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-018_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-018_2.fastq.gz
-NGS-19,1,3D2,donor,10.3,5 um impactor,2,2,6.206,11.0140899,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-019_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-019_2.fastq.gz
-NGS-20,2,3D2,donor,10.3,5 um impactor,2,2,6.206,11.0140899,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-020_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-020_2.fastq.gz
-NGS-21,1,3C1,recipient,10.3,5 um impactor,4,3,6.456,11.1500272,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-021_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-021_2.fastq.gz
-NGS-22,2,3C1,recipient,10.3,5 um impactor,4,3,6.456,11.1500272,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-022_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-022_2.fastq.gz
-NGS-23,1,3C2,recipient,10.3,5 um impactor,4,3,6.565,11.0297016,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-023_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-023_2.fastq.gz
-NGS-24,2,3C2,recipient,10.3,5 um impactor,4,3,6.565,11.0297016,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-024_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-024_2.fastq.gz
-NGS-25,1,4D1,donor,10.4,5 um impactor,2,2,6.456,11.00704403,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-025_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-025_2.fastq.gz
-NGS-26,2,4D1,donor,10.4,5 um impactor,2,2,6.456,11.00704403,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-026_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-026_2.fastq.gz
-NGS-27,1,4D2,donor,10.4,5 um impactor,2,2,6.206,10.97143373,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-027_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-027_2.fastq.gz
-NGS-28,2,4D2,donor,10.4,5 um impactor,2,2,6.206,10.97143373,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-028_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-028_2.fastq.gz
-NGS-29,1,4C1,recipient,10.4,5 um impactor,4,3,6.193,11.0041106,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-029_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-029_2.fastq.gz
-NGS-30,2,4C1,recipient,10.4,5 um impactor,4,3,6.193,11.0041106,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-030_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-030_2.fastq.gz
-NGS-31,1,4C2,recipient,10.4,5 um impactor,4,3,5.956,10.84128264,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-031_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-031_2.fastq.gz
-NGS-32,2,4C2,recipient,10.4,5 um impactor,4,3,5.956,10.84128264,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-032_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-032_2.fastq.gz
-NGS-33,1,8D1,donor,10.8,2.5 um impactor,2,2,6.456,10.97131148,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-033_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-033_2.fastq.gz
-NGS-34,2,8D1,donor,10.8,2.5 um impactor,2,2,6.456,10.97131148,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-034_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-034_2.fastq.gz
-NGS-35,1,8D2,donor,10.8,2.5 um impactor,2,2,6.206,10.91081353,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-035_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-035_2.fastq.gz
-NGS-36,2,8D2,donor,10.8,2.5 um impactor,2,2,6.206,10.91081353,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-036_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-036_2.fastq.gz
-NGS-37,1,8C1,recipient,10.8,2.5 um impactor,6,5,5.289,10.09357009,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-037_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-037_2.fastq.gz
-NGS-38,2,8C1,recipient,10.8,2.5 um impactor,6,5,5.289,10.09357009,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-038_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-038_2.fastq.gz
-NGS-39,1,9D1,donor,10.9,2.5 um impactor,2,2,6.539,10.79765703,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-039_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-039_2.fastq.gz
-NGS-40,2,9D1,donor,10.9,2.5 um impactor,2,2,6.539,10.79765703,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-040_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-040_2.fastq.gz
-NGS-41,1,9D2,donor,10.9,2.5 um impactor,2,2,6.331,10.7930869,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-041_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-041_2.fastq.gz
-NGS-42,2,9D2,donor,10.9,2.5 um impactor,2,2,6.331,10.7930869,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-042_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-042_2.fastq.gz
-NGS-43,1,9C1,recipient,10.9,2.5 um impactor,4,3,6.123,10.84906247,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-043_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-043_2.fastq.gz
-NGS-44,2,9C1,recipient,10.9,2.5 um impactor,4,3,6.123,10.84906247,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-044_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-044_2.fastq.gz
-NGS-45,1,9C2,recipient,10.9,2.5 um impactor,8,7,6.331,11.04078107,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-045_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-045_2.fastq.gz
-NGS-46,2,9C2,recipient,10.9,2.5 um impactor,8,7,6.331,11.04078107,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-046_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-046_2.fastq.gz
-NGS47,1,1D1,donor ,10.1,no impactor,4,4,4.456,10.31464635,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-47_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-47_2.fastq.gz
-NGS48,2,1D1,donor ,10.1,no impactor,4,4,4.456,10.31464635,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-48_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-48_2.fastq.gz
-NGS49,1,1D2,donor ,10.1,no impactor,4,4,4.706,10.53316703,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-49_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-49_2.fastq.gz
-NGS50,2,1D2,donor ,10.1,no impactor,4,4,4.706,10.53316703,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-50_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-50_2.fastq.gz
-NGS51,1,1C1,contact,10.1,no impactor,6,5,3.706,9.993216048,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-51_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-51_2.fastq.gz
-NGS52,2,1C1,contact,10.1,no impactor,6,5,3.706,9.993216048,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-52_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-52_2.fastq.gz
-NGS53,1,1C2,contact,10.1,no impactor,6,5,4.193,10.34271479,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-53_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-53_2.fastq.gz
-NGS54,2,1C2,contact,10.1,no impactor,6,5,4.193,10.34271479,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-54_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-54_2.fastq.gz
-NGS55,1,2D1,donor ,10.2,no impactor,4,4,4.456,10.41931365,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-55_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-55_2.fastq.gz
-NGS56,2,2D1,donor ,10.2,no impactor,4,4,4.456,10.41931365,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-56_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-56_2.fastq.gz
-NGS57,1,2D2,donor ,10.2,no impactor,4,4,4.539,10.08759565,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-57_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-57_2.fastq.gz
-NGS58,2,2D2,donor ,10.2,no impactor,4,4,4.539,10.08759565,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-58_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-58_2.fastq.gz
-NGS59,1,2C1,contact,10.2,no impactor,6,5,4.373,10.19661268,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-59_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-59_2.fastq.gz
-NGS60,2,2C1,contact,10.2,no impactor,6,5,4.373,10.19661268,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-60_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-60_2.fastq.gz
-NGS61,1,2C2,contact,10.2,no impactor,6,5,5.071,10.5851395,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-61_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-61_2.fastq.gz
-NGS62,2,2C2,contact,10.2,no impactor,6,5,5.071,10.5851395,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-62_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-62_2.fastq.gz
-NGS63,1,3D1,donor ,10.3,5 um impactor,4,4,4.675,10.00969453,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-63_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-63_2.fastq.gz
-NGS64,2,3D1,donor ,10.3,5 um impactor,4,4,4.675,10.00969453,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-64_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-64_2.fastq.gz
-NGS65,1,3D2,donor ,10.3,5 um impactor,4,4,4.456,10.19117885,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-65_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-65_2.fastq.gz
-NGS66,2,3D2,donor ,10.3,5 um impactor,4,4,4.456,10.19117885,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-66_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-66_2.fastq.gz
-NGS67,1,3C1,contact,10.3,5 um impactor,6,5,4.373,10.08977568,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-67_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-67_2.fastq.gz
-NGS68,2,3C1,contact,10.3,5 um impactor,6,5,4.373,10.08977568,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-68_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-68_2.fastq.gz
-NGS69,1,3C2,contact,10.3,5 um impactor,6,5,4.623,10.5278064,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-69_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-69_2.fastq.gz
-NGS70,2,3C2,contact,10.3,5 um impactor,6,5,4.623,10.5278064,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-70_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-70_2.fastq.gz
-NGS71,1,4D1,donor ,10.4,5 um impactor,4,4,4.193,10.16922243,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-71_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-71_2.fastq.gz
-NGS72,2,4D1,donor ,10.4,5 um impactor,4,4,4.193,10.16922243,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-72_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-72_2.fastq.gz
-NGS73,1,4D2,donor ,10.4,5 um impactor,4,4,4.289,9.697390622,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-73_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-73_2.fastq.gz
-NGS74,2,4D2,donor ,10.4,5 um impactor,4,4,4.289,9.697390622,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-74_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-74_2.fastq.gz
-NGS75,1,4C1,contact,10.4,5 um impactor,6,5,4.789,10.3235425,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-75_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-75_2.fastq.gz
-NGS76,2,4C1,contact,10.4,5 um impactor,6,5,4.789,10.3235425,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-76_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-76_2.fastq.gz
-NGS77,1,4C2,contact,10.4,5 um impactor,6,5,4.071,9.855965266,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-77_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-77_2.fastq.gz
-NGS78,2,4C2,contact,10.4,5 um impactor,6,5,4.071,9.855965266,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-78_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-78_2.fastq.gz
-NGS79,1,8D1,donor,10.8,2.5 um impactor,4,4,4.373,9.736916024,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-79_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-79_2.fastq.gz
-NGS80,2,8D1,donor,10.8,2.5 um impactor,4,4,4.373,9.736916024,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-80_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-80_2.fastq.gz
-NGS81,1,8D2,donor,10.8,2.5 um impactor,4,4,4.956,10.086118,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-81_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-81_2.fastq.gz
-NGS82,2,8D2,donor,10.8,2.5 um impactor,4,4,4.956,10.086118,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-82_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-82_2.fastq.gz
-NGS83,1,8C1,contact,10.8,2.5 um impactor,8,7,5.789,10.57614014,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-83_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-83_2.fastq.gz
-NGS84,2,8C1,contact,10.8,2.5 um impactor,8,7,5.789,10.57614014,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-84_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-84_2.fastq.gz
-NGS85,1,9D1,donor,10.9,2.5 um impactor,4,4,4.071,10.15330046,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-85_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-85_2.fastq.gz
-NGS86,2,9D1,donor,10.9,2.5 um impactor,4,4,4.071,10.15330046,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-86_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-86_2.fastq.gz
-NGS87,1,9D2,donor,10.9,2.5 um impactor,4,4,4.373,10.55120234,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-87_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-87_2.fastq.gz
-NGS88,2,9D2,donor,10.9,2.5 um impactor,4,4,4.373,10.55120234,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-88_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-88_2.fastq.gz
-NGS89,1,9C1,contact,10.9,2.5 um impactor,6,5,4.456,9.943327847,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-89_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-89_2.fastq.gz
-NGS90,2,9C1,contact,10.9,2.5 um impactor,6,5,4.456,9.943327847,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-90_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-90_2.fastq.gz
-NGS91,1,9C2,contact,10.9,2.5 um impactor,10,9,2.706,10.25562203,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-91_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-91_2.fastq.gz
-NGS92,2,9C2,contact,10.9,2.5 um impactor,10,9,2.706,10.25562203,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-92_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-92_2.fastq.gz
-NGS93,1,19D1,donor,19,no impactor/IVC cage,2,2,6.873,11.12705922,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-93_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-93_2.fastq.gz
-NGS94,2,19D1,donor,19,no impactor/IVC cage,2,2,6.873,11.12705922,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-94_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-94_2.fastq.gz
-NGS95,1,19D1,donor,19,no impactor/IVC cage,4,4,6.175,10.30341295,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-95_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-95_2.fastq.gz
-NGS96,2,19D1,donor,19,no impactor/IVC cage,4,4,6.175,10.30341295,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-96_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-96_2.fastq.gz
-NGS97,1,19D2,donor,19,no impactor/IVC cage,2,2,7.123,10.77873321,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-97_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-97_2.fastq.gz
-NGS98,2,19D2,donor,19,no impactor/IVC cage,2,2,7.123,10.77873321,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-98_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-98_2.fastq.gz
-NGS99,1,19D2,donor,19,no impactor/IVC cage,4,4,5.789,10.33836412,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-99_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-99_2.fastq.gz
-NGS100,2,19D2,donor,19,no impactor/IVC cage,4,4,5.789,10.33836412,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-100_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-100_2.fastq.gz
-NGS101,1,19AC1,aerosol,19,no impactor/IVC cage,4,3,7.956,11.00705358,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-101_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-101_2.fastq.gz
-NGS102,2,19AC1,aerosol,19,no impactor/IVC cage,4,3,7.956,11.00705358,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-102_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-102_2.fastq.gz
-NGS103,1,19AC1,aerosol,19,no impactor/IVC cage,6,5,7.206,10.8543583,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-103_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-103_2.fastq.gz
-NGS104,2,19AC1,aerosol,19,no impactor/IVC cage,6,5,7.206,10.8543583,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-104_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-104_2.fastq.gz
-NGS105,1,19AC2,aerosol,19,no impactor/IVC cage,4,3,7.272,10.80332969,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-105_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-105_2.fastq.gz
-NGS106,2,19AC2,aerosol,19,no impactor/IVC cage,4,3,7.272,10.80332969,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-106_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-106_2.fastq.gz
-NGS107,1,19AC2,aerosol,19,no impactor/IVC cage,6,5,5.956,9.953897584,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-107_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-107_2.fastq.gz
-NGS108,2,19AC2,aerosol,19,no impactor/IVC cage,6,5,5.956,9.953897584,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-108_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-108_2.fastq.gz
-NGS109,1,19DC1,direct,19,no impactor/IVC cage,3,1,7.341,10.36619913,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-109_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-109_2.fastq.gz
-NGS110,2,19DC1,direct,19,no impactor/IVC cage,3,1,7.341,10.36619913,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-110_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-110_2.fastq.gz
-NGS111,1,19DC1,direct,19,no impactor/IVC cage,5,3,7.341,10.5353069,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-111_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-111_2.fastq.gz
-NGS112,2,19DC1,direct,19,no impactor/IVC cage,5,3,7.341,10.5353069,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-112_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-112_2.fastq.gz
-NGS113,1,19DC2,direct,19,no impactor/IVC cage,3,1,6.623,10.02356566,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-113_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-113_2.fastq.gz
-NGS114,2,19DC2,direct,19,no impactor/IVC cage,3,1,6.623,10.02356566,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-114_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-114_2.fastq.gz
-NGS115,1,19DC2,direct,19,no impactor/IVC cage,5,3,6.571,10.38277524,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-115_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-115_2.fastq.gz
-NGS116,2,19DC2,direct,19,no impactor/IVC cage,5,3,6.571,10.38277524,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-116_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-116_2.fastq.gz
+Run,Replicate,Animal,Pair,Experiment,Condition,DPI,DPC,TCID50,RNA_Copies,Sequencing_Round,R1,R2
+HL-2162,1,stock,,,isolate stock,,,,,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/HL-2162_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/HL-2162_2.fastq.gz
+NGS-01,1,1D1,donor,10.1,no impactor,2,2,5.956,10.88848194,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-01_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-01_2.fastq.gz
+NGS-02,2,1D1,donor,10.1,no impactor,2,2,5.956,10.88848194,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-02_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-02_2.fastq.gz
+NGS-03,1,1D2,donor,10.1,no impactor,2,2,5.841,11.16475371,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-03_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-03_2.fastq.gz
+NGS-04,2,1D2,donor,10.1,no impactor,2,2,5.841,11.16475371,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-04_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-04_2.fastq.gz
+NGS-05,1,1C1,recipient,10.1,no impactor,4,3,6.615,11.02167476,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-05_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-05_2.fastq.gz
+NGS-06,2,1C1,recipient,10.1,no impactor,4,3,6.615,11.02167476,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-06_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-06_2.fastq.gz
+NGS-07,1,1C2,recipient,10.1,no impactor,4,3,6.289,11.15265077,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-07_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-07_2.fastq.gz
+NGS-08,2,1C2,recipient,10.1,no impactor,4,3,6.289,11.15265077,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-08_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-08_2.fastq.gz
+NGS-09,1,2D1,donor,10.2,no impactor,2,2,5.789,10.91537547,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-09_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-09_2.fastq.gz
+NGS-10,2,2D1,donor,10.2,no impactor,2,2,5.789,10.91537547,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-10_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-10_2.fastq.gz
+NGS-11,1,2D2,donor,10.2,no impactor,2,2,5.956,11.09856358,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-11_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-11_2.fastq.gz
+NGS-12,2,2D2,donor,10.2,no impactor,2,2,5.956,11.09856358,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-12_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-12_2.fastq.gz
+NGS-13,1,2C1,recipient,10.2,no impactor,4,3,6.206,11.14536046,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-13_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-13_2.fastq.gz
+NGS-14,2,2C1,recipient,10.2,no impactor,4,3,6.206,11.14536046,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-14_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-14_2.fastq.gz
+NGS-15,1,2C2,recipient,10.2,no impactor,4,3,6.289,10.648909,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-15_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-15_2.fastq.gz
+NGS-16,2,2C2,recipient,10.2,no impactor,4,3,6.289,10.648909,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-16_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-16_2.fastq.gz
+NGS-17,1,3D1,donor,10.3,5 um impactor,2,2,6.071,11.04171699,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-017_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-017_2.fastq.gz
+NGS-18,2,3D1,donor,10.3,5 um impactor,2,2,6.071,11.04171699,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-018_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-018_2.fastq.gz
+NGS-19,1,3D2,donor,10.3,5 um impactor,2,2,6.206,11.0140899,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-019_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-019_2.fastq.gz
+NGS-20,2,3D2,donor,10.3,5 um impactor,2,2,6.206,11.0140899,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-020_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-020_2.fastq.gz
+NGS-21,1,3C1,recipient,10.3,5 um impactor,4,3,6.456,11.1500272,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-021_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-021_2.fastq.gz
+NGS-22,2,3C1,recipient,10.3,5 um impactor,4,3,6.456,11.1500272,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-022_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-022_2.fastq.gz
+NGS-23,1,3C2,recipient,10.3,5 um impactor,4,3,6.565,11.0297016,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-023_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-023_2.fastq.gz
+NGS-24,2,3C2,recipient,10.3,5 um impactor,4,3,6.565,11.0297016,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-024_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-024_2.fastq.gz
+NGS-25,1,4D1,donor,10.4,5 um impactor,2,2,6.456,11.00704403,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-025_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-025_2.fastq.gz
+NGS-26,2,4D1,donor,10.4,5 um impactor,2,2,6.456,11.00704403,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-026_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-026_2.fastq.gz
+NGS-27,1,4D2,donor,10.4,5 um impactor,2,2,6.206,10.97143373,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-027_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-027_2.fastq.gz
+NGS-28,2,4D2,donor,10.4,5 um impactor,2,2,6.206,10.97143373,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-028_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-028_2.fastq.gz
+NGS-29,1,4C1,recipient,10.4,5 um impactor,4,3,6.193,11.0041106,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-029_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-029_2.fastq.gz
+NGS-30,2,4C1,recipient,10.4,5 um impactor,4,3,6.193,11.0041106,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-030_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-030_2.fastq.gz
+NGS-31,1,4C2,recipient,10.4,5 um impactor,4,3,5.956,10.84128264,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-031_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-031_2.fastq.gz
+NGS-32,2,4C2,recipient,10.4,5 um impactor,4,3,5.956,10.84128264,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-032_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-032_2.fastq.gz
+NGS-33,1,8D1,donor,10.8,2.5 um impactor,2,2,6.456,10.97131148,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-033_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-033_2.fastq.gz
+NGS-34,2,8D1,donor,10.8,2.5 um impactor,2,2,6.456,10.97131148,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-034_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-034_2.fastq.gz
+NGS-35,1,8D2,donor,10.8,2.5 um impactor,2,2,6.206,10.91081353,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-035_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-035_2.fastq.gz
+NGS-36,2,8D2,donor,10.8,2.5 um impactor,2,2,6.206,10.91081353,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-036_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-036_2.fastq.gz
+NGS-37,1,8C1,recipient,10.8,2.5 um impactor,6,5,5.289,10.09357009,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-037_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-037_2.fastq.gz
+NGS-38,2,8C1,recipient,10.8,2.5 um impactor,6,5,5.289,10.09357009,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-038_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-038_2.fastq.gz
+NGS-39,1,9D1,donor,10.9,2.5 um impactor,2,2,6.539,10.79765703,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-039_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-039_2.fastq.gz
+NGS-40,2,9D1,donor,10.9,2.5 um impactor,2,2,6.539,10.79765703,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-040_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-040_2.fastq.gz
+NGS-41,1,9D2,donor,10.9,2.5 um impactor,2,2,6.331,10.7930869,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-041_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-041_2.fastq.gz
+NGS-42,2,9D2,donor,10.9,2.5 um impactor,2,2,6.331,10.7930869,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-042_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-042_2.fastq.gz
+NGS-43,1,9C1,recipient,10.9,2.5 um impactor,4,3,6.123,10.84906247,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-043_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-043_2.fastq.gz
+NGS-44,2,9C1,recipient,10.9,2.5 um impactor,4,3,6.123,10.84906247,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-044_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-044_2.fastq.gz
+NGS-45,1,9C2,recipient,10.9,2.5 um impactor,8,7,6.331,11.04078107,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-045_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-045_2.fastq.gz
+NGS-46,2,9C2,recipient,10.9,2.5 um impactor,8,7,6.331,11.04078107,1,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-046_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-046_2.fastq.gz
+NGS47,1,1D1,donor ,10.1,no impactor,4,4,4.456,10.31464635,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-47_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-47_2.fastq.gz
+NGS48,2,1D1,donor ,10.1,no impactor,4,4,4.456,10.31464635,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-48_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-48_2.fastq.gz
+NGS49,1,1D2,donor ,10.1,no impactor,4,4,4.706,10.53316703,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-49_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-49_2.fastq.gz
+NGS50,2,1D2,donor ,10.1,no impactor,4,4,4.706,10.53316703,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-50_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-50_2.fastq.gz
+NGS51,1,1C1,contact,10.1,no impactor,6,5,3.706,9.993216048,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-51_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-51_2.fastq.gz
+NGS52,2,1C1,contact,10.1,no impactor,6,5,3.706,9.993216048,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-52_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-52_2.fastq.gz
+NGS53,1,1C2,contact,10.1,no impactor,6,5,4.193,10.34271479,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-53_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-53_2.fastq.gz
+NGS54,2,1C2,contact,10.1,no impactor,6,5,4.193,10.34271479,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-54_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-54_2.fastq.gz
+NGS55,1,2D1,donor ,10.2,no impactor,4,4,4.456,10.41931365,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-55_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-55_2.fastq.gz
+NGS56,2,2D1,donor ,10.2,no impactor,4,4,4.456,10.41931365,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-56_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-56_2.fastq.gz
+NGS57,1,2D2,donor ,10.2,no impactor,4,4,4.539,10.08759565,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-57_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-57_2.fastq.gz
+NGS58,2,2D2,donor ,10.2,no impactor,4,4,4.539,10.08759565,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-58_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-58_2.fastq.gz
+NGS59,1,2C1,contact,10.2,no impactor,6,5,4.373,10.19661268,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-59_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-59_2.fastq.gz
+NGS60,2,2C1,contact,10.2,no impactor,6,5,4.373,10.19661268,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-60_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-60_2.fastq.gz
+NGS61,1,2C2,contact,10.2,no impactor,6,5,5.071,10.5851395,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-61_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-61_2.fastq.gz
+NGS62,2,2C2,contact,10.2,no impactor,6,5,5.071,10.5851395,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-62_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-62_2.fastq.gz
+NGS63,1,3D1,donor ,10.3,5 um impactor,4,4,4.675,10.00969453,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-63_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-63_2.fastq.gz
+NGS64,2,3D1,donor ,10.3,5 um impactor,4,4,4.675,10.00969453,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-64_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-64_2.fastq.gz
+NGS65,1,3D2,donor ,10.3,5 um impactor,4,4,4.456,10.19117885,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-65_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-65_2.fastq.gz
+NGS66,2,3D2,donor ,10.3,5 um impactor,4,4,4.456,10.19117885,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-66_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-66_2.fastq.gz
+NGS67,1,3C1,contact,10.3,5 um impactor,6,5,4.373,10.08977568,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-67_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-67_2.fastq.gz
+NGS68,2,3C1,contact,10.3,5 um impactor,6,5,4.373,10.08977568,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-68_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-68_2.fastq.gz
+NGS69,1,3C2,contact,10.3,5 um impactor,6,5,4.623,10.5278064,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-69_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-69_2.fastq.gz
+NGS70,2,3C2,contact,10.3,5 um impactor,6,5,4.623,10.5278064,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-70_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-70_2.fastq.gz
+NGS71,1,4D1,donor ,10.4,5 um impactor,4,4,4.193,10.16922243,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-71_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-71_2.fastq.gz
+NGS72,2,4D1,donor ,10.4,5 um impactor,4,4,4.193,10.16922243,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-72_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-72_2.fastq.gz
+NGS73,1,4D2,donor ,10.4,5 um impactor,4,4,4.289,9.697390622,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-73_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-73_2.fastq.gz
+NGS74,2,4D2,donor ,10.4,5 um impactor,4,4,4.289,9.697390622,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-74_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-74_2.fastq.gz
+NGS75,1,4C1,contact,10.4,5 um impactor,6,5,4.789,10.3235425,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-75_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-75_2.fastq.gz
+NGS76,2,4C1,contact,10.4,5 um impactor,6,5,4.789,10.3235425,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-76_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-76_2.fastq.gz
+NGS77,1,4C2,contact,10.4,5 um impactor,6,5,4.071,9.855965266,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-77_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-77_2.fastq.gz
+NGS78,2,4C2,contact,10.4,5 um impactor,6,5,4.071,9.855965266,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-78_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-78_2.fastq.gz
+NGS79,1,8D1,donor,10.8,2.5 um impactor,4,4,4.373,9.736916024,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-79_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-79_2.fastq.gz
+NGS80,2,8D1,donor,10.8,2.5 um impactor,4,4,4.373,9.736916024,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-80_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-80_2.fastq.gz
+NGS81,1,8D2,donor,10.8,2.5 um impactor,4,4,4.956,10.086118,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-81_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-81_2.fastq.gz
+NGS82,2,8D2,donor,10.8,2.5 um impactor,4,4,4.956,10.086118,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-82_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-82_2.fastq.gz
+NGS83,1,8C1,contact,10.8,2.5 um impactor,8,7,5.789,10.57614014,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-83_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-83_2.fastq.gz
+NGS84,2,8C1,contact,10.8,2.5 um impactor,8,7,5.789,10.57614014,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-84_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-84_2.fastq.gz
+NGS85,1,9D1,donor,10.9,2.5 um impactor,4,4,4.071,10.15330046,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-85_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-85_2.fastq.gz
+NGS86,2,9D1,donor,10.9,2.5 um impactor,4,4,4.071,10.15330046,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-86_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-86_2.fastq.gz
+NGS87,1,9D2,donor,10.9,2.5 um impactor,4,4,4.373,10.55120234,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-87_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-87_2.fastq.gz
+NGS88,2,9D2,donor,10.9,2.5 um impactor,4,4,4.373,10.55120234,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-88_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-88_2.fastq.gz
+NGS89,1,9C1,contact,10.9,2.5 um impactor,6,5,4.456,9.943327847,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-89_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-89_2.fastq.gz
+NGS90,2,9C1,contact,10.9,2.5 um impactor,6,5,4.456,9.943327847,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-90_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-90_2.fastq.gz
+NGS91,1,9C2,contact,10.9,2.5 um impactor,10,9,2.706,10.25562203,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-91_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-91_2.fastq.gz
+NGS92,2,9C2,contact,10.9,2.5 um impactor,10,9,2.706,10.25562203,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-92_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-92_2.fastq.gz
+NGS93,1,19D1,donor,19,no impactor/IVC cage,2,2,6.873,11.12705922,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-93_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-93_2.fastq.gz
+NGS94,2,19D1,donor,19,no impactor/IVC cage,2,2,6.873,11.12705922,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-94_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-94_2.fastq.gz
+NGS95,1,19D1,donor,19,no impactor/IVC cage,4,4,6.175,10.30341295,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-95_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-95_2.fastq.gz
+NGS96,2,19D1,donor,19,no impactor/IVC cage,4,4,6.175,10.30341295,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-96_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-96_2.fastq.gz
+NGS97,1,19D2,donor,19,no impactor/IVC cage,2,2,7.123,10.77873321,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-97_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-97_2.fastq.gz
+NGS98,2,19D2,donor,19,no impactor/IVC cage,2,2,7.123,10.77873321,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-98_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-98_2.fastq.gz
+NGS99,1,19D2,donor,19,no impactor/IVC cage,4,4,5.789,10.33836412,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-99_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-99_2.fastq.gz
+NGS100,2,19D2,donor,19,no impactor/IVC cage,4,4,5.789,10.33836412,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-100_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-100_2.fastq.gz
+NGS101,1,19AC1,aerosol,19,no impactor/IVC cage,4,3,7.956,11.00705358,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-101_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-101_2.fastq.gz
+NGS102,2,19AC1,aerosol,19,no impactor/IVC cage,4,3,7.956,11.00705358,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-102_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-102_2.fastq.gz
+NGS103,1,19AC1,aerosol,19,no impactor/IVC cage,6,5,7.206,10.8543583,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-103_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-103_2.fastq.gz
+NGS104,2,19AC1,aerosol,19,no impactor/IVC cage,6,5,7.206,10.8543583,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-104_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-104_2.fastq.gz
+NGS105,1,19AC2,aerosol,19,no impactor/IVC cage,4,3,7.272,10.80332969,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-105_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-105_2.fastq.gz
+NGS106,2,19AC2,aerosol,19,no impactor/IVC cage,4,3,7.272,10.80332969,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-106_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-106_2.fastq.gz
+NGS107,1,19AC2,aerosol,19,no impactor/IVC cage,6,5,5.956,9.953897584,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-107_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-107_2.fastq.gz
+NGS108,2,19AC2,aerosol,19,no impactor/IVC cage,6,5,5.956,9.953897584,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-108_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-108_2.fastq.gz
+NGS109,1,19DC1,direct,19,no impactor/IVC cage,3,1,7.341,10.36619913,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-109_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-109_2.fastq.gz
+NGS110,2,19DC1,direct,19,no impactor/IVC cage,3,1,7.341,10.36619913,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-110_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-110_2.fastq.gz
+NGS111,1,19DC1,direct,19,no impactor/IVC cage,5,3,7.341,10.5353069,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-111_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-111_2.fastq.gz
+NGS112,2,19DC1,direct,19,no impactor/IVC cage,5,3,7.341,10.5353069,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-112_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-112_2.fastq.gz
+NGS113,1,19DC2,direct,19,no impactor/IVC cage,3,1,6.623,10.02356566,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-113_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-113_2.fastq.gz
+NGS114,2,19DC2,direct,19,no impactor/IVC cage,3,1,6.623,10.02356566,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-114_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-114_2.fastq.gz
+NGS115,1,19DC2,direct,19,no impactor/IVC cage,5,3,6.571,10.38277524,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-115_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-115_2.fastq.gz
+NGS116,2,19DC2,direct,19,no impactor/IVC cage,5,3,6.571,10.38277524,2,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-116_1.fastq.gz,/fh/fast/bloom_j/SR/ngs/illumina_Hui-Ling/NGS-116_2.fastq.gz

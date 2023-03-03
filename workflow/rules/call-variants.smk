@@ -325,7 +325,8 @@ rule merge_variants:
             join(config['variant_dir'], "{sample}", "{sample}.varscan.formatted.tsv"),
             join(config['variant_dir'], "{sample}", "{sample}.ivar.formatted.tsv"),
             join(config['variant_dir'], "{sample}", "{sample}.pysam.formatted.tsv")
-        ]
+        ],
+        samples = config['samples']
     output:
         join(config['variant_dir'], "{sample}", "{sample}.variants.tsv")
     params:
@@ -348,6 +349,14 @@ rule merge_variants:
         exclude = pd.read_csv(params.exclude, sep="\t")
         # Remove variants where the position is in the excluded sites table
         df = df[~df['POS'].isin(exclude['POS'])]
+        # Read in the sample metadata
+        metadata = pd.read_csv(str(input.samples))
+        # Filter the metadata to only include the sample of interest
+        metadata = metadata[metadata['Run'] == wildcards.sample]
+        # Add the sample info to the variants table
+        metadata_columns = ['Run', 'Replicate', 'Animal', 'Pair', 'Experiment', 'Condition', 'DPI', 'DPC', 'TCID50', 'RNA_Copies', 'Sequencing_Round']
+        # Merge the metadata columns into the variants table
+        df = df.merge(metadata[metadata_columns], on='Run')
         # Write the output
         df.to_csv(str(output), sep="\t", index=False)
 
