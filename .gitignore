@@ -4,4 +4,4 @@ _*
 *.out
 env/
 results/
-notebooks/*.html
+workflow/notebooks/*.html

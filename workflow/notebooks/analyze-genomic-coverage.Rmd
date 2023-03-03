@@ -1,0 +1,201 @@
+---
+title: "1. Analyze Genomic Coverage"
+author:
+    - "Will Hannon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+In this notebook, I assess the read depth and coverage in all 117 samples. The goals of this notebook are to: 
+
+1. See how trimming primers and masking mismatched primers changes coverage.
+2. Determine if there are samples with too little read coverage to call variants. 
+
+```{r Setup, include=FALSE}
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r Required Packages, message=FALSE, warning=FALSE}
+
+## ==== Install Required Packages ==== ##
+
+## List of all packages needed
+packages = c("tidyverse", "data.table")
+invisible(lapply(c(packages), library, character.only = TRUE))
+
+```
+
+```{r Inputs, echo=T}
+
+## ==== File paths input data ==== ##
+
+if (exists("snakemake")) {
+  
+  # Depth from `samtools depth` before primer trimming
+  untrimmed.depth.data = snakemake@input[[1]]
+  
+  # Depth from `samtools depth` after primer trimming
+  trimmed.depth.data = snakemake@input[[2]]
+  
+  # Sample metadata
+  sample.metadata.data = snakemake@input[[3]]
+  
+  
+} else {
+
+  # Depth from `samtools depth` before primer trimming
+  untrimmed.depth.data = "../../results/coverage/merged.untrimmed.depth.tsv"
+  
+  # Depth from `samtools depth` after primer trimming
+  trimmed.depth.data = "../../results/coverage/merged.trimmed.depth.tsv"
+  
+  # Sample metadata
+  sample.metadata.data = "../../config/samples.csv"
+  
+}
+
+```
+
+## Read Depth
+
+What's the general pattern of read depth across all samples before trimming primer sequences? We sequenced samples in two rounds. I'll break the samples into these separate rounds to see if there is anything different. 
+
+```{r Depth Data, echo=TRUE, message=FALSE}
+
+# Read in the depth information from `samtools depth`
+untrimmed.depth.df = fread(untrimmed.depth.data) %>% as_tibble()
+trimmed.depth.df = fread(trimmed.depth.data) %>% as_tibble()
+
+# Get the sample names from each run
+sample.metadata.df = read_csv(sample.metadata.data, show_col_types = FALSE)
+round.1.runs = filter(sample.metadata.df, Sequencing_Round == 1)$Run
+round.2.runs = filter(sample.metadata.df, Sequencing_Round == 2)$Run
+```
+
+How does the depth look for all samples before trimming the primers? I'm splitting up the first and second sequencing runs in case there are obvious differences. I capped the maximum depth per position at 100,000 reads. I'll plot this on a log scale. 
+
+```{r Untrimmed Depth, echo=T, fig.align='center', fig.width=8, fig.height=6}
+
+untrimmed.depth.df %>% 
+  mutate(Round = case_when(
+    Run %in% round.1.runs ~ "First Sequencing Run",
+    Run %in% round.2.runs ~ "Seccond Sequencing Run"
+  )) %>% 
+  ggplot(aes(x = POS, y = log(DP), group = Run)) +
+    geom_line() + 
+    ggtitle("Untrimmed Alignments") + 
+    xlab("Position") + 
+    ylab("Log(Depth)") +
+    facet_wrap(~Round, nrow = 2) +
+    theme_bw(18) + 
+    theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+There are two main observations to be made here. (1) There is something strange going on for a couple samples in the first round of sequencing where a single amplicon appears to be much more highly covered than in other samples. (2) Depth is generally lower in the second round of sequencing and some regions around the middle of the genome are not covered in a handful of samples. This is to be expected, because many of these samples are from later time-points where viral copy number was low.
+
+How does trimming primer sequences change this depth pattern? I trimmed primer sequences (by soft clipping primers in reads) using [iVar](https://andersen-lab.github.io/ivar/html/manualpage.html). 
+
+
+```{r Trimmed Depth, echo=T, fig.align='center', fig.width=8, fig.height=6}
+
+trimmed.depth.df %>% 
+  mutate(Round = case_when(
+    Run %in% round.1.runs ~ "First Sequencing Run",
+    Run %in% round.2.runs ~ "Seccond Sequencing Run"
+  )) %>% 
+  ggplot(aes(x = POS, y = log(DP), group = Run)) +
+    geom_line() + 
+    ggtitle("Primer Trimmed Alignments") + 
+    xlab("Position") + 
+    ylab("Log(Depth)") +
+    facet_wrap(~Round, nrow = 2) +
+    theme_bw(18) + 
+    theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Generally, the depth looks the same. There aren't any huge differences between the depth in primer trimmed and un-trimmed sequences. 
+
+## Read Coverage 
+
+From looking at the pattern of read depth over the genome, it's clear that some samples have gaps in coverage. This is particularly true for the runs in the second round of sequencing. 
+
+I'll highlight these samples by summarizing the read coverage for each sample. I'll calculate the percentage of the genome above some arbitrary level of depth. Later, I will explore how different depth thresholds effect the concordance between variant calls in replicates. 
+
+Since variants were called in the primer trimmed BAM files, I'll use the primer trimmed depth going forward. 
+
+```{r Summarize Coverage, echo=T}
+
+min.depth = 200
+min.frac = 80
+
+trimmed.coverage.df = trimmed.depth.df %>% 
+  group_by(Run) %>%
+  summarize(Coverage = (length(POS[DP > min.depth]) / length(POS)) * 100) %>% 
+  ungroup() %>% 
+  left_join(., sample.metadata.df, by = "Run") %>% 
+  select(!c("R1", "R2"))
+
+```
+
+Theoretically, coverage should be a function of the number of templates being sequenced. As a proxy of this, I'll plot the percentage of the genome covered by `r min.depth` reads or more. A possible threshold for whether or not to include runs in the downstream variant calling is `r paste(min.frac, "% >= ", min.depth, "X coverage", sep="")`. I'll draw this on the chart as well. 
+
+```{r TCID50 v. Coverage, echo=TRUE, warning=FALSE, fig.align='center'}
+
+trimmed.coverage.df %>% 
+  ggplot(aes(x = Coverage, y = TCID50, col = as_factor(Sequencing_Round))) + 
+    geom_point() + 
+    geom_vline(xintercept = min.frac, color = "black", linetype = 2) +
+    xlab(paste("% > ", min.depth, "X Coverage", sep="")) + 
+    ylab("Log TCID50") + 
+    scale_color_manual(values = c("#E69F00", "#56B4E9"), name = "Sequencing Round") + 
+    theme_bw(18)
+
+```
+
+Below, I've also plotted percent genomic coverage by the RNA copy number. 
+
+```{r RNA Copies v. Coverage, echo=TRUE, warning=FALSE, fig.align='center'}
+
+trimmed.coverage.df %>% 
+  ggplot(aes(x = Coverage, y = RNA_Copies, col = as_factor(Sequencing_Round))) + 
+    geom_point() + 
+    geom_vline(xintercept = min.frac, color = "black", linetype = 2) +
+    xlab(paste("% > ", min.depth, "X Coverage", sep="")) + 
+    ylab("Viral Copy Number") + 
+    scale_color_manual(values = c("#E69F00", "#56B4E9"), name = "Sequencing Round") + 
+    theme_bw(18)
+
+```
+Both of these plots show effectively the same thing. There are about `r length(filter(trimmed.coverage.df, Coverage >= 80))` runs that would fail a coverage requirement of `r paste(min.frac, "% >= ", min.depth, "X coverage", sep="")`. What are these samples? 
+
+```{r Coverage Fail by DPI, echo=TRUE, warning=FALSE, fig.align='center'}
+
+trimmed.coverage.df %>% 
+  mutate(Fail = if_else(Coverage < min.frac, "Low Coverage", "Acceptable Coverage")) %>% 
+  ggplot(aes(x = reorder(Run, DPI), y = DPI, col = Fail)) +
+    geom_point() + 
+    xlab("Run") + 
+    ylab("Days Post Infection") +
+    scale_color_manual(values = c("black", "red"), name="") + 
+    theme_bw() +
+    theme(axis.text.x=element_blank(),
+          axis.ticks.x=element_blank()) 
+      
+
+```
+
+Aside from having generally lower template numbers than runs that pass our `r paste(min.frac, "% >= ", min.depth, "X coverage", sep="")` filter, these samples also tend to be collected a fairly long time after the initial infection. Again, this is expected single viral titres are likely to wane over time. 
+
+
