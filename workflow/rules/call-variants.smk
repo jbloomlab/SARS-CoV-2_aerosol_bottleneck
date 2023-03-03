@@ -21,7 +21,7 @@ rule varscan_calling:
     SNP calling with Varscan v2 using an mpileup file generated with samtools.
     """
     input: 
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"),
         genome = join(config['reference_dir'], 'index', 'SARS2.fa'),
         varscan = join(config['tool_dir'], "VarScan.v2.4.0.jar")
     output: 
@@ -64,7 +64,7 @@ rule lofeq_calling:
     Call vaiants with lofreq using a probabilistic model. 
     """
     input: 
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"),
         genome = join(config['reference_dir'], 'index', 'SARS2.fa')
     output: 
         variants = join(config['variant_dir'], "{sample}", "{sample}.lofreq.vcf")
@@ -97,7 +97,7 @@ rule pysam_calling:
     Custom variant calling script using pysam htslib interface. 
     """
     input: 
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"),
         genome = join(config['reference_dir'], 'index', 'SARS2.fa'),
         gff = join(config['reference_dir'], 'SARS2.gff')
     output:
@@ -128,7 +128,7 @@ rule ivar_calling:
     SNP calling with iVar using an mpileup file generated with samtools.
     """
     input: 
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
+        bam = join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"),
         genome = join(config['reference_dir'], 'index', 'SARS2.fa'),
         gff = join(config['reference_dir'], 'SARS2.gff')
     output: 
@@ -316,7 +316,7 @@ rule merge_variants:
     """
     Aggregate the variant calls from each caller into a single table.
     Remove variants that fail universal filters.
-    Remove variants in masked sites (excluded sites table from Lauring Lab).
+    Remove variants in masked sites (excluded sites table from Lauring Lab):
     https://github.com/lauringlab/SARS-CoV-2_VOC_transmission_bottleneck
     """
     input: 
@@ -343,7 +343,7 @@ rule merge_variants:
         # Apply final filters that are universal to all callers
         df = df[df['AF'] >= params.min_frequency]
         df = df[df['DP'] >= params.min_coverage]
-        df[df['ADF'] + df['ADR'] >= params.min_obsv]
+        df = df[df['ADF'] + df['ADR'] >= params.min_obsv]
         # Read in the excluded sites table (from the Lauring lab)
         exclude = pd.read_csv(params.exclude, sep="\t")
         # Remove variants where the position is in the excluded sites table
@@ -351,3 +351,19 @@ rule merge_variants:
         # Write the output
         df.to_csv(str(output), sep="\t", index=False)
 
+
+rule aggregate_variants: 
+    """
+    Combine variants from all samples into a single file.
+    """
+    input: 
+        expand(join(config['variant_dir'], "{sample}", "{sample}.variants.tsv"), sample=samples)
+    output:
+        join(config['variant_dir'], "variants.csv")
+    run:
+        # Read in each sample's variants
+        dfs = [pd.read_csv(f, sep="\t") for f in input]
+        # Concatenate the dataframes
+        df = pd.concat(dfs, ignore_index=True)
+        # Write the output
+        df.to_csv(str(output), index=False)

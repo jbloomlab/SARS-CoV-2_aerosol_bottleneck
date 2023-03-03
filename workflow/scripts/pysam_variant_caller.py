@@ -5,8 +5,8 @@ Author: Will Hannon
 """
 from collections import defaultdict
 import argparse
-import pysam  
-import pandas as pd 
+import pysam
+import pandas as pd
 from Bio import SeqIO
 
 
@@ -24,7 +24,7 @@ def check_read(read):
     -------
     bool
         True/False if read should be included
-        
+
     """
     # Exclude Quality Failures
     if read.is_qcfail:
@@ -40,13 +40,13 @@ def check_read(read):
         return False
     else:
         return True
-        
 
-def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, min_Freq = 0.005, min_Cov = 1, callback = check_read):
+
+def call_variants(bampath, reference, contig, max_Depth=100000, min_BQ=25, min_Freq=0.005, min_Cov=1, callback=check_read):
     """
     Call variants from a pileup file using pysam.
-    
-    
+
+
     Parameters
     ----------
     bampath : str
@@ -61,14 +61,14 @@ def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, m
         The minimum depth for a position to be considered
     callback : function
         A function that return True if a read should be considered
-    
+
 
     Returns
     -------
     pd.DataFrame
         A table for variants identified in a given sample
-        
-        
+
+
     """
     # Store the rows
     rows = []
@@ -76,7 +76,7 @@ def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, m
     # Read in the indexed BAM file
     with pysam.AlignmentFile(bampath, "rb") as bamfile:
         # Iterate over each column (a.k.a. position) in the pileup
-        for pileupcolumn in bamfile.pileup(contig, stepper = 'nofilter', min_base_quality = min_BQ, max_depth = max_Depth):
+        for pileupcolumn in bamfile.pileup(contig, stepper='nofilter', min_base_quality=min_BQ, max_depth=max_Depth):
 
             # Site-specific information
             POS = pileupcolumn.reference_pos + 1
@@ -85,14 +85,15 @@ def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, m
             RDF = 0
             RDR = 0
             RBQ = []
-            ALT = {base:{'ADF': 0,
-                         'ADR': 0,
-                         'ABQ': []
-                        } for base in 'ATCG' if base != REF}
-            
+            ALT = {base: {'ADF': 0,
+                          'ADR': 0,
+                          'ABQ': []
+                          } for base in 'ATCG' if base != REF}
+
             # Log a progress message
             if POS % 1000 == 0:
-                print(f"Called variants for {POS} of {len(reference)} total bases...")
+                print(
+                    f"Called variants for {POS} of {len(reference)} total bases...")
 
             # Iterate over each read in the pileup
             for pileupread in pileupcolumn.pileups:
@@ -100,10 +101,10 @@ def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, m
                 if pileupread.is_refskip or pileupread.is_del or not callback(pileupread.alignment):
                     continue
 
-                # Increment Total Depth 
+                # Increment Total Depth
                 DP += 1
 
-                # Collect Read-specific information 
+                # Collect Read-specific information
                 readpos = pileupread.query_position
                 base = pileupread.alignment.query_sequence[readpos]
                 qual = pileupread.alignment.query_qualities[readpos]
@@ -116,8 +117,8 @@ def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, m
                         RDF += 1
                     else:
                         RDR += 1
-                # Or, fill in SNPs at this position 
-                elif base != REF: 
+                # Or, fill in SNPs at this position
+                elif base != REF:
                     ALT[base]['ABQ'].append(qual)
                     if orientation == "forward":
                         ALT[base]['ADF'] += 1
@@ -126,19 +127,30 @@ def call_variants(bampath, reference, contig, max_Depth = 100000, min_BQ = 25, m
 
             # Collect all of the information for this positions
             for SNP, SNP_stats in ALT.items():
+                # If there is a SNP at this position, add it to the table
                 if SNP_stats['ADF'] + SNP_stats['ADR'] > 0:
+                    # Calculate the mean alternative base quality
+                    MEAN_ABQ = round(
+                        sum(SNP_stats['ABQ'])/len(SNP_stats['ABQ']), 2)
+                    # Calculate the mean reference base quality (it can be zero)
+                    if RDF + RDR == 0:
+                        MEAN_RBQ = 0
+                    else:
+                        MEAN_RBQ = round(sum(RBQ)/len(RBQ), 2)
                     AF = (SNP_stats['ADF'] + SNP_stats['ADR']) / DP
-                    row = [POS, REF, SNP, round(AF, 4), DP, RDF, RDR, SNP_stats['ADF'], SNP_stats['ADR'], round(sum(RBQ)/len(RBQ), 2), round(sum(SNP_stats['ABQ'])/len(SNP_stats['ABQ']), 2)]
+                    row = [POS, REF, SNP, round(
+                        AF, 4), DP, RDF, RDR, SNP_stats['ADF'], SNP_stats['ADR'], MEAN_RBQ, MEAN_ABQ]
                     rows.append(row)
 
     # Convert the rows into a dataframe
-    variant_df = pd.DataFrame(rows, columns=["POS", "REF", "ALT", "AF", "DP", "RDF", "RDR", "ADF", "ADR", "RBQ", "ABQ"])
-    variant_df['CALLER'] = 'pysam'    
-    
+    variant_df = pd.DataFrame(rows, columns=[
+                              "POS", "REF", "ALT", "AF", "DP", "RDF", "RDR", "ADF", "ADR", "RBQ", "ABQ"])
+    variant_df['CALLER'] = 'pysam'
+
     # Apply any remaining filters
     variant_df = variant_df.loc[variant_df["AF"] >= min_Freq]
     variant_df = variant_df.loc[variant_df["DP"] >= min_Cov]
-    
+
     return variant_df.reset_index(drop=True)
 
 
@@ -161,37 +173,37 @@ def translate(codon):
     ------
     AssertionError
         error if codon sequence is invalid
-        
+
     """
-    
-    table = { 
-        'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M', 
-        'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T', 
-        'AAC':'N', 'AAT':'N', 'AAA':'K', 'AAG':'K', 
-        'AGC':'S', 'AGT':'S', 'AGA':'R', 'AGG':'R',                  
-        'CTA':'L', 'CTC':'L', 'CTG':'L', 'CTT':'L', 
-        'CCA':'P', 'CCC':'P', 'CCG':'P', 'CCT':'P', 
-        'CAC':'H', 'CAT':'H', 'CAA':'Q', 'CAG':'Q', 
-        'CGA':'R', 'CGC':'R', 'CGG':'R', 'CGT':'R', 
-        'GTA':'V', 'GTC':'V', 'GTG':'V', 'GTT':'V', 
-        'GCA':'A', 'GCC':'A', 'GCG':'A', 'GCT':'A', 
-        'GAC':'D', 'GAT':'D', 'GAA':'E', 'GAG':'E', 
-        'GGA':'G', 'GGC':'G', 'GGG':'G', 'GGT':'G', 
-        'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S', 
-        'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L', 
-        'TAC':'Y', 'TAT':'Y', 'TAA':'*', 'TAG':'*', 
-        'TGC':'C', 'TGT':'C', 'TGA':'*', 'TGG':'W', 
-    } 
-    
+
+    table = {
+        'ATA': 'I', 'ATC': 'I', 'ATT': 'I', 'ATG': 'M',
+        'ACA': 'T', 'ACC': 'T', 'ACG': 'T', 'ACT': 'T',
+        'AAC': 'N', 'AAT': 'N', 'AAA': 'K', 'AAG': 'K',
+        'AGC': 'S', 'AGT': 'S', 'AGA': 'R', 'AGG': 'R',
+        'CTA': 'L', 'CTC': 'L', 'CTG': 'L', 'CTT': 'L',
+        'CCA': 'P', 'CCC': 'P', 'CCG': 'P', 'CCT': 'P',
+        'CAC': 'H', 'CAT': 'H', 'CAA': 'Q', 'CAG': 'Q',
+        'CGA': 'R', 'CGC': 'R', 'CGG': 'R', 'CGT': 'R',
+        'GTA': 'V', 'GTC': 'V', 'GTG': 'V', 'GTT': 'V',
+        'GCA': 'A', 'GCC': 'A', 'GCG': 'A', 'GCT': 'A',
+        'GAC': 'D', 'GAT': 'D', 'GAA': 'E', 'GAG': 'E',
+        'GGA': 'G', 'GGC': 'G', 'GGG': 'G', 'GGT': 'G',
+        'TCA': 'S', 'TCC': 'S', 'TCG': 'S', 'TCT': 'S',
+        'TTC': 'F', 'TTT': 'F', 'TTA': 'L', 'TTG': 'L',
+        'TAC': 'Y', 'TAT': 'Y', 'TAA': '*', 'TAG': '*',
+        'TGC': 'C', 'TGT': 'C', 'TGA': '*', 'TGG': 'W',
+    }
+
     assert codon in table.keys(), "Not a valid codon sequence."
-    
+
     return table[codon]
 
 
 def parse_gff_file(filename):
     """
     Generic parsing function for GFF3 format files.
-    
+
     Parameters
     ----------
     filename : str
@@ -201,20 +213,20 @@ def parse_gff_file(filename):
     -------
     dict
         Dictionary of parsed features and header
-        
+
     """
-    
+
     data = {
         'header': {},
         'features': []
     }
-    
+
     with open(filename) as f:
         print(f"Parsing {filename}...\n")
-        
+
         for line in f:
             line = line.strip()
-            
+
             if line.startswith('###'):
                 print("End of file.")
                 break
@@ -236,16 +248,16 @@ def parse_gff_file(filename):
                     'phase': fields[7],
                     'attributes': {}
                 }
-                
+
                 # Parse the attributes field
                 for attribute in fields[8].split(';'):
                     if not attribute:
                         continue
                     key, value = attribute.split('=')
                     feature['attributes'][key] = value
-                
+
                 data['features'].append(feature)
-                
+
     return data
 
 
@@ -253,29 +265,29 @@ def annotate_coding_change(position, alt, gff, reference):
     """
     Given a mutation and alternative base, annotate the coding 
     effect if there is one.
-    
+
     Parameters
     ----------
     position : int
         1-indexed integer position of mutation in reference genome
-        
+
     alt : str
         Alternative base at this position
-    
+
     gff : dict
         Parsed dictionary of GFF annotations 
-        
+
     reference : str
         Reference sequence from fasta file
-        
-        
+
+
     Returns
     -------
     list
         List of [REF_AA, PROT_POS, ALT_AA, GENE]
-    
+
     """
-    
+
     # Extract the coding regions from the GFF file
     CDS = defaultdict(list)
     for feature in gff['features']:
@@ -286,7 +298,7 @@ def annotate_coding_change(position, alt, gff, reference):
         start = feature['start']
         stop = feature['end']
         CDS[gene].append([start, stop])
-        
+
     # Annotate any possible coding changes
     coding_changes = []
     for gene, regions in CDS.items():
@@ -298,24 +310,25 @@ def annotate_coding_change(position, alt, gff, reference):
                 # Position of the SNP in the codon (0-index)
                 codon_pos = gene_pos % 3
                 # Position of the ALT_AA in the protein (0-index)
-                prot_pos = (gene_pos // 3) 
-                # Gene sequence 
+                prot_pos = (gene_pos // 3)
+                # Gene sequence
                 gene_seq = str(reference)[start-1:stop]
                 # List of the codons in the gene
                 codons = [gene_seq[i:i+3] for i in range(0, len(gene_seq), 3)]
                 # Reference Codon
                 ref_codon = codons[prot_pos]
                 # Alternative Codon
-                alt_codon = "".join(alt if (i == codon_pos) else base for i, base in enumerate(ref_codon))
+                alt_codon = "".join(
+                    alt if (i == codon_pos) else base for i, base in enumerate(ref_codon))
                 # Reference AA
                 ref_aa = translate(ref_codon)
                 # Alternative AA
                 alt_aa = translate(alt_codon)
-                
+
                 # Append the coding changes
                 coding_changes.append([ref_aa, prot_pos + 1, alt_aa, gene])
 
-    # Join multiple annotations if they exist       
+    # Join multiple annotations if they exist
     if coding_changes:
         return [":".join(str(x) for x in y) if len(set(y)) > 1 else y[0] for y in zip(*coding_changes)]
     else:
@@ -354,18 +367,19 @@ def main():
     contig = refrecord.name
     reference = refrecord.seq
 
-    # Call variants 
+    # Call variants
     variant_df = call_variants(args.bam,
                                reference,
                                contig,
-                               min_BQ = args.min_baseQ,
-                               min_Freq = args.min_freq,
-                               min_Cov = args.min_coverage,
-                               max_Depth = args.max_depth,
-                               callback = check_read)
-    
+                               min_BQ=args.min_baseQ,
+                               min_Freq=args.min_freq,
+                               min_Cov=args.min_coverage,
+                               max_Depth=args.max_depth,
+                               callback=check_read)
+
     # Annotate the coding changes
-    variant_df[['REF_AA', 'POS_AA', 'ALT_AA', 'GENE']] = variant_df.apply(lambda row: pd.Series(annotate_coding_change(row['POS'], row['ALT'], gff, reference)), axis=1)
+    variant_df[['REF_AA', 'POS_AA', 'ALT_AA', 'GENE']] = variant_df.apply(
+        lambda row: pd.Series(annotate_coding_change(row['POS'], row['ALT'], gff, reference)), axis=1)
 
     # Write the output to a TSV file
     variant_df.to_csv(args.output, sep='\t', index=False)

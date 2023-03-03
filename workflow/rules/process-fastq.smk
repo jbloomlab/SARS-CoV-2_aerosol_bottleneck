@@ -2,7 +2,7 @@
 ### ======= Process the fastq files ======= ###
 This snakemake file contains rules for processing raw fastqs.
 
-# Author: Will Hannon 
+Author: Will Hannon 
 """
 
 rule fetch_fastq:

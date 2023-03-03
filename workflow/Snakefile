@@ -14,13 +14,14 @@ configfile: "config/snakemake.yml"
 
 #### ----------------------- Targets ----------------------- ####
 sample_df = pd.read_csv(config['samples'])
-samples = sample_df['Run'].unique()
+# samples = sample_df['Run'].unique()
+samples = ["HL-2162", "NGS-01", "NGS-02", "NGS-03"]
 
 rule all:
     input: 
-        expand(join(config['variant_dir'], "{sample}", "{sample}.variants.tsv"), sample=["HL-2162"]),
-        join(config['coverage_dir'], "merged.depth.tsv"),
-        expand(join(config['align_dir'], "{sample}", "{sample}.masked.sorted.bam"), sample=["HL-2162"])
+        join(config['variant_dir'], "variants.csv"),
+        join(config['coverage_dir'], "merged.untrimmed.depth.tsv"),
+        join(config['coverage_dir'], "merged.trimmed.depth.tsv")
 
 #### ------------------------ Rules ------------------------ ####
 

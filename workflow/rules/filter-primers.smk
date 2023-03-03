@@ -55,25 +55,6 @@ rule make_primer_bed:
         """
 
 
-rule test_primer_trimming:
-    """
-    Debugging rule to test primer trimming.
-    """
-    input:
-        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam")
-    output:
-        bam = join(config['align_dir'], "{sample}", "{sample}.subsampled.sorted.bam"),
-        bai = join(config['align_dir'], "{sample}", "{sample}.subsampled.sorted.bam.bai")
-    conda:
-        "../envs/filter-primers.yml"
-    shell:
-        """
-        samtools view -s 0.01 -b {input.bam} | \
-            samtools sort -o {output.bam} && \
-            samtools index {output.bam}
-        """
-
-
 rule trim_primers:
     """
     Use iVar to trim the primer sequences from the aligned reads.
@@ -82,7 +63,7 @@ rule trim_primers:
         # bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam"),
         bed = join(config['reference_dir'], "primers", "primers.bed"),
         pairs = config['primer_pairs'],
-        bam = join(config['align_dir'], "{sample}", "{sample}.subsampled.sorted.bam")
+        bam = join(config['align_dir'], "{sample}", "{sample}.sorted.bam")
     output:
         bam = join(config['align_dir'], "{sample}", "{sample}.trimmed.bam")
     log:
