@@ -1,0 +1,360 @@
+---
+title: "5. Calculate Transmission Bottleneck"
+author:
+    - "Will Hannon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+The goal of this notebook is to calculate the transmission bottleneck for the different aerosol sizes. Each cage has 4 animal, 2 contacts and 2 donors. I'll calculate the bottleneck assuming each possible donor/contact pair. I'll also calculate the bottleneck from the inoculate to each donor animal. Depending on the results, I'll try more stringent filters on the variants to see if this impacts the overall bottleneck size. 
+
+```{r Setup, include=FALSE}
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r Required Packages, message=FALSE, warning=FALSE}
+
+## ==== Install Required Packages ==== ##
+
+## List of all packages needed
+packages = c("tidyverse", "rmutil")
+invisible(lapply(c(packages), library, character.only = TRUE))
+
+```
+
+```{r Inputs, echo=T}
+
+## ==== File paths input data ==== ##
+
+if (exists("snakemake")) {
+  
+  # Sample metadata
+  sample.metadata.data = snakemake@input[[1]]
+  
+  # Variant calls from pysam, varscan, ivar, and lofreq
+  variant.calls.data = snakemake@input[[2]]
+  
+  # Merged variant calls from the previous notebook 
+  merged.variant.calls.data = snakemake@input[[3]]
+
+  
+} else {
+
+  # Sample metadata
+  sample.metadata.data = "../../config/samples.csv"
+  
+  # Variant calls from pysam, varscan, ivar, and lofreq
+  variant.calls.data = "../../results/variants/variants.csv"
+  
+  # Merged variant calls from the previous notebook 
+  merged.variant.calls.data = "../../results/variants/merged_variants.csv"
+  
+}
+
+```
+
+```{r Load Data, echo=TRUE}
+
+merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
+  # Fix the naming scheme of experiment 19 
+  mutate(Condition = case_when(
+    Experiment == 19 & Pair == 'aerosol' ~ 'aerosol transmission',
+    Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
+    TRUE ~ Condition
+  )) %>% 
+  # Harmonize the pair names to contact and donor
+  mutate(Pair = case_when(
+    Pair == 'aerosol' ~ 'contact',
+    Pair == 'direct' ~ 'contact',
+    Pair == 'recipient' ~ 'contact',
+    TRUE ~ Pair
+  ))
+
+```
+
+## Beta Binomial Bottleneck
+
+To calculate the transmission bottleneck, I'll use the Approximate Beta Binomial model as described [in this paper](https://doi.org/10.1128/JVI.00171-17). I'll [adapt some code](https://github.com/weissmanlab/BB_bottleneck/blob/master/Bottleneck_size_estimation_approx.r) from the Weissman lab that implements this model.
+
+```{r Beta Binomial Function, echo=T}
+
+# Implement the beta binomial model as function
+approx.transmission.bottleneck = function(transmission.pair.df,
+                                          freq.threshold,
+                                          Nb.min,
+                                          Nb.max,
+                                          Nb.increment,
+                                          confidence.interval){
+  
+  # This function gives Log Likelihood for every donor recipient SNP frequency pair
+  log.beta.binom = function(nu.donor, nu.contact, NB.size, freq.threshold){ 
+    
+    nu.donor = if_else(nu.contact <= (1 - freq.threshold), nu.donor,  1 - nu.donor)
+    nu.contact = if_else(nu.contact <= (1 - freq.threshold), nu.contact,  1 - nu.contact)
+    
+    ll.above = 0 
+    ll.below = 0 
+    for(k in 0:NB.size){
+      ll.above = ll.above + dbeta(nu.contact, k, (NB.size - k) ) * dbinom(k, size = NB.size, prob = nu.donor)  
+      ll.below = ll.below + pbeta(freq.threshold, k, (NB.size - k)) * dbinom(k, size = NB.size, prob = nu.donor)
+      } 
+  
+  # We use LL_val_above above the calling threshold, and LL_val_below below the calling threshold
+  ll.val = if_else(nu.contact >= freq.threshold , ll.above,  ll.below )
+  # Convert likelihood to log likelihood
+  ll.val = log(ll.val) 
+  
+  return(ll.val)
+  }
+  
+  # This function sums over all SNP frequencies in the donor and recipient
+  ll.approx = function(transmission.df, freq.threshold, NB.size){  
+    ll.array = log.beta.binom(transmission.df$donor, transmission.df$contact, freq.threshold, NB.size)  
+    sum.ll = sum(ll.array)
+    return(sum.ll)
+  }
+
+  # Filter out variants below the minimum frequency threshold in donor
+  transmission.pair.df = transmission.pair.df %>% 
+    filter(donor >= freq.threshold,
+           donor <= 1 - freq.threshold)
+  
+  # Make a data frame to hold the log likelihood 
+  ll.df = tibble(bottleneck_size = seq(from = Nb.min, to = Nb.max, by = Nb.increment), log_likelihood = 0) 
+  
+  # Calculate the log likelihood for each bottleneck size
+  for(i in 1:nrow(ll.df) ){
+    ll.df$log_likelihood[i] = ll.approx(transmission.pair.df, ll.df$bottleneck_size[i], freq.threshold) 
+  }
+  
+  # Bottleneck size at which max likelihood occurs and that bottleneck
+  max.ll = max(ll.df$log_likelihood)
+  bottleneck.size = ll.df %>% 
+  filter(log_likelihood == max.ll) %>% 
+  pull(bottleneck_size)
+  
+  # Calculate the confidence interval
+  likelihood.ratio = qchisq(confidence.interval, df = 1) 
+  ci.df = filter(ll.df, 2 * (max.ll - log_likelihood) <= likelihood.ratio) 
+  lower.ci.bottleneck = min(ci.df$bottleneck_size) 
+  upper.ci.bottleneck = max(ci.df$bottleneck_size) 
+  
+  # If the confidence interval table is empty
+  if (length(ci.df$log_likelihood) == 0){
+    lower.ci.bottleneck = min(bottleneck.size) 
+    upper.ci.bottleneck = max(bottleneck.size)
+  }
+  # if the bottleneck is likely larger then the max set by user
+  if (max(bottleneck.size) == Nb.max){
+    upper.ci.bottleneck = Nb.max
+    print("Peak bottleneck value for MLE is at Nb.max! Try raising Nb.max for better bottleneck estimate.")
+  }
+  # if the bottleneck is likely smaller then the min set by user
+  if (min(bottleneck.size) == Nb.min){
+    lower_CI_bottleneck = Nb.min
+    if(Nb.min > 1){
+      print("Peak bottleneck value for MLE is at Nb.min! Try lowering Nb.min for better bottleneck estimate.")}
+  }
+  
+  return(c(lower.ci.bottleneck, bottleneck.size, upper.ci.bottleneck))
+
+}
+
+```
+
+Then, I'll get all of the pairwise comparisons between conditions in each cage (`Experiment`).
+
+```{r Donor Contact Pairs, echo=T}
+
+# Get the donor contact pairs for each experiment
+combinations.df = merged.df %>% 
+  filter(Pair != "stock") %>% 
+  select(Experiment, Animal, Pair) %>% 
+  distinct() %>% 
+  group_by(Experiment, Pair) %>%
+  mutate(combination_id = row_number()) %>%
+  pivot_wider(id_cols = c("Experiment", "combination_id"), 
+              names_from = "Pair", values_from = "Animal") %>%
+  select(-combination_id) %>%
+  ungroup() %>%
+  group_by(Experiment) %>%
+  summarize(combinations = list(expand.grid(donor = donor, contact = contact))) %>%
+  pull(combinations) %>% 
+  bind_rows() %>% 
+  filter(!(is.na(donor) | is.na(contact))) %>% 
+  left_join(merged.df %>%
+              select(Experiment, Animal) %>%
+              distinct(),
+            by = c("contact" = "Animal"))
+
+```
+
+It's also necessary to determine the number of days post infection for the samples being compared. Ideally, the earliest number for days post contact will provide the most accurate bottleneck measurement. 
+
+```{r Check Earliest Time}
+
+# Add the earliest time points from each animal to the data frame
+for (i in 1:nrow(combinations.df)) {
+  # Get the donor and the contact 
+  donor = combinations.df[i,]$donor
+  contact = combinations.df[i,]$contact
+  # Get the earliest day for each condition
+  earliest.donor.dpc = merged.df %>% 
+    filter(Animal == donor) %>% 
+    pull(DPC) %>% 
+    min()
+  earliest.contact.dpc = merged.df %>% 
+    filter(Animal == contact) %>% 
+    pull(DPC) %>% 
+    min()
+  # Add these to the combinations
+  combinations.df$donor_dpc[i] = earliest.donor.dpc
+  # Add these to the combinations
+  combinations.df$contact_dpc[i] = earliest.contact.dpc
+
+}
+
+```
+
+I'll iterate over these comparisons and calculate the bottleneck for each. I'll also save the data frame comparing each animal to plot 'TV' plots showing the frequency of alleles in the donor and the contact. 
+
+```{r Bottleneck without Filter, echo=TRUE}
+
+bottleneck.df = data.frame()
+tv.df = data.frame()
+for (i in 1:nrow(combinations.df)) {
+  
+  # Donor information
+  donor = combinations.df[i,]$donor
+  donor.dpc = combinations.df[i,]$donor_dpc
+  donor.df = merged.df %>% 
+    filter(Animal == donor, 
+           DPC == donor.dpc) %>% 
+    mutate(donor = AF) %>% 
+    select(SNP, donor)
+    
+  # Contact information
+  contact = combinations.df[i,]$contact
+  contact.dpc = combinations.df[i,]$contact_dpc
+  contact.df = merged.df %>% 
+    filter(Animal == contact, 
+           DPC == contact.dpc) %>% 
+    mutate(contact = AF) %>% 
+    select(SNP, contact)
+  
+  # Combine into single data frame
+  transmission.pair.df = full_join(donor.df, contact.df, by = "SNP") %>% 
+    mutate(donor = if_else(is.na(donor), 0, donor),
+           contact = if_else(is.na(contact), 0, contact)) 
+  
+  # Calculate the bottleneck
+  bottleneck = approx.transmission.bottleneck(transmission.pair.df,
+                                 freq.threshold = 0.02,
+                                 Nb.min = 1,
+                                 Nb.max = 500,
+                                 Nb.increment = 1,
+                                 confidence.interval = .95)
+  
+  # Make a new bottleneck row
+  bottleneck.row = list(lower_ci = bottleneck[1], 
+                        upper_ci = bottleneck[3],
+                        bottleneck = bottleneck[2],
+                        experiment = combinations.df[i,]$Experiment,
+                        donor = donor,
+                        contact = contact)
+
+  # Append the row to the bottleneck data frame 
+  bottleneck.df = rbind(bottleneck.df, bottleneck.row)
+  
+  # Append frequencies from joined pairs for the TV plots
+  transmission.pair.df$Experiment  = combinations.df[i,]$Experiment
+  transmission.pair.df$Pair  = paste(donor, contact, sep = "-")
+  tv.df = rbind(tv.df, transmission.pair.df)
+  
+}
+  
+```
+
+Let's see how the bottlenecks summarized for each condition. Below, I'm plotting the bottleneck size for each pairwise comparison as a point. I'm plotting the mean of those comparisons as a black circle. The error bars represent the minimum lower bound of a 95% CI and the maximum upper bound of a 95% CI for the comparisons being summarized. 
+
+```{r Plot Raw Bottlenecks, echo=T, fig.align='center', fig.width=6, fig.height=3}
+
+# Condition order 
+condition.order = c("no impactor",
+                    "2.5 um impactor",
+                    "5 um impactor",
+                    "aerosol transmission",
+                    "direct transmission")
+
+# Get the conditions for each contact animal
+conditions = merged.df %>% 
+  select(Animal, Condition) %>% 
+  distinct()
+
+# Calculate the mean bottleneck for each condition
+mean.bottleneck = bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) %>% 
+  group_by(Condition) %>% 
+  summarize(bottleneck = mean(bottleneck),
+            lower_ci = min(lower_ci),
+            upper_ci = max(upper_ci))
+
+# Add the conditions to the data frame and plot 
+bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) %>%  
+  ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
+    geom_errorbar(data = mean.bottleneck, aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point(data = mean.bottleneck, shape = 1, size = 3, col = "black") + 
+    geom_jitter(width = 0.1) + 
+    xlab("") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
+    theme(legend.position = "none")
+
+```
+
+Interestingly, it does look like decreasing the aerosol size slightly decreases the average bottleneck. However, there is a lot of noise and it's important to determine whether this is due to artifacts. 
+
+Additionally, the bottleneck size is higher than I would expect given the literature. Below, I'll plot the TV plots for each experiment to see exactly how many variants are shared between donor and contact. 
+
+```{r Raw TV Plots, echo=T, fig.align='center', fig.width=6, fig.height=6}
+
+tv.df %>% 
+  separate(Pair, c("donor_animal", "contact_animal"), sep = "-") %>% 
+  left_join(., conditions, by = c("contact_animal" = "Animal")) %>% 
+  mutate(Experiment = paste(Experiment, " (", Condition, ")", sep = "")) %>% 
+  ggplot(aes(x = donor, y = contact)) + 
+    geom_point() + 
+    facet_wrap(~Experiment) +
+    theme_bw()
+
+```
+
+These TV plots are revealing because although you often see variants fixing in the contacts in every experiment/cage, there are also many variants at low frequency that are shared at remarkably similar frequency. It's important to figure out what these are and if they are real. 
+
+## Filter the Variants
+
+I'll test the effect on the bottleneck of adding more stringent filters to the variants including a strand bias filter, higher coverage filter, and higher minimum frequency. 
+
+```{r Filter the Merged Variants, echo=T}
+
+merged.df %>% 
+  filter(ADF/ADR)
+
+```
+

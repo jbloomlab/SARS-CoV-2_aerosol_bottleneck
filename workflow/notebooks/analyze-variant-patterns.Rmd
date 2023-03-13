@@ -1,0 +1,300 @@
+---
+title: "4. Analyze Variant Patterns"
+author:
+    - "Will Hannon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+In this notebook, I'll take the merged and filtered variants and look for patterns that emerge. This includes:
+- How the frequency and distribution of variants changes conditions?
+- How the frequency and distribution of variants changes over time?
+- Are there shared variants between multiple samples?
+- How do the number of variants change by viral copy number? 
+
+```{r Setup, include=FALSE}
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r Required Packages, message=FALSE, warning=FALSE}
+
+## ==== Install Required Packages ==== ##
+
+## List of all packages needed
+packages = c("tidyverse", "ggrepel")
+invisible(lapply(c(packages), library, character.only = TRUE))
+
+```
+
+```{r Inputs, echo=T}
+
+## ==== File paths input data ==== ##
+
+if (exists("snakemake")) {
+  
+  # Sample metadata
+  sample.metadata.data = snakemake@input[[1]]
+  
+  # Variant calls from pysam, varscan, ivar, and lofreq
+  variant.calls.data = snakemake@input[[2]]
+  
+  # Merged variant calls from the previous notebook 
+  merged.variant.calls.data = snakemake@input[[3]]
+
+  
+} else {
+
+  # Sample metadata
+  sample.metadata.data = "../../config/samples.csv"
+  
+  # Variant calls from pysam, varscan, ivar, and lofreq
+  variant.calls.data = "../../results/variants/variants.csv"
+  
+  # Merged variant calls from the previous notebook 
+  merged.variant.calls.data = "../../results/variants/merged_variants.csv"
+  
+}
+
+```
+
+```{r Load Data, echo=TRUE}
+
+merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE)
+
+```
+
+
+## Allele Frequency Distribution
+
+Let's see what the distribution of allele frequencies are across all of our samples. This includes the isolates and fixed variants. 
+
+```{r Frequency Distribution, echo=T, fig.align='center', fig.width=3, fig.height=3}
+
+merged.df %>% 
+  ggplot(aes(x = AF)) + 
+    geom_histogram(bins = 30) +
+    theme_bw()
+
+```
+
+But, it might be more informative to filter out the variants that are fixed in the isolate. Let's see what this does. 
+
+```{r Fixed Stock Variants, echo=T}
+
+fixed.isolate.variants = merged.df %>%
+  filter(Animal == "stock") %>% 
+  filter(AF >= .99) %>% 
+  pull(SNP)
+
+```
+
+In total, there are `r length(fixed.isolate.variants)` fixed in the stock that was used to innoculate the donors. 
+
+```{r Frequency Distribution no Fixed, echo=T, fig.align='center', fig.width=3, fig.height=3}
+
+merged.df %>% 
+  filter(!SNP %in% fixed.isolate.variants) %>% 
+  ggplot(aes(x = AF)) + 
+    geom_histogram(bins = 30) +
+    theme_bw()
+
+```
+
+We can see that there are still some fixed variants. There are likely variants that fixed either during transmission or over the course of the infection. Let's get a better idea of this by plotting the distribution in frequency by condition, specifically, whether the alleles came from the donor or the recipient. 
+
+```{r Frequency Distribution Donor v. Recip, echo=T, fig.align='center', fig.width=6, fig.height=3}
+
+merged.df %>% 
+  # Fix the recipient/contact naming difference
+  mutate(Pair = if_else(Pair == "recipient", "contact", Pair)) %>% 
+  filter(Pair %in% c("donor", "contact")) %>% 
+  filter(!SNP %in% fixed.isolate.variants) %>% 
+  ggplot(aes(x = AF, fill = factor(Pair, levels = c("donor", "contact")))) + 
+    geom_histogram(bins = 30) +
+    facet_wrap(~factor(Pair, levels = c("donor", "contact")), ncol=2) + 
+    xlab("Allele Frequency") + 
+    ylab("Allele Count") + 
+    scale_fill_manual(values = c("darkblue", "darkred"), name="") + 
+    theme_bw() + 
+    theme(legend.position = "bottom")
+
+```
+
+Indeed, it seems to be the case the variants are higher frequency, even fixed, after transmission occurs. This is pretty neat, but one caveat is that time after infection could play a role. In other words, do variants tend to fix over time, or is a bottleneck at transmission fixing the variants? 
+
+```{r Frequency Distribution Time, echo=T, fig.align='center', fig.width=9, fig.height=3}
+
+merged.df %>% 
+  filter(!SNP %in% fixed.isolate.variants,
+         Animal != "stock",
+         Pair == "contact") %>% 
+  mutate(DPC = paste(DPC, "Days Post Contact")) %>% 
+  ggplot(aes(x = AF)) + 
+    geom_histogram(bins = 30) +
+    facet_wrap(~DPC, ncol=3) + 
+    xlab("Allele Frequency") + 
+    ylab("Allele Count") + 
+    theme_bw() + 
+    theme(legend.position = "bottom") 
+
+```
+
+Generally, there appear to be fewer low frequency variants relative to fixed variants over time, but this is also likely a function of depth and viral copy number limiting the resolution of variant calling in the later time points. Also, the pattern of fixed and high frequency variants after transmission is plainly apparent in the earliest time point. 
+
+## Variant Resolution
+
+To be sure, let's check how the number of variants (excluding variants fixed in the stock) varies as a function of viral copy number and TCID50. 
+
+```{r Number of Variants v. Copies, echo=T, fig.align='center', fig.width=3, fig.height=3}
+
+merged.df %>% 
+  filter(!SNP %in% fixed.isolate.variants,
+         Animal != "stock") %>% 
+  group_by(Animal, DPC, TCID50, RNA_Copies) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(Label= paste(Animal, " ", DPC, "-DPC", sep="")) %>% 
+  ggplot(aes(x = RNA_Copies, y = n, col = DPC, label = Label)) + 
+    geom_point() + 
+    geom_text_repel(size = 2) + 
+    ggtitle("SNPs vs. RNA Copies") +
+    xlab("RNA Copies") + 
+    ylab("Allele Count") + 
+    theme_bw()+ 
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5))
+    
+
+```
+
+```{r Number of Variants v. TCID50, echo=T, fig.align='center', fig.width=3, fig.height=3}
+
+merged.df %>% 
+  filter(!SNP %in% fixed.isolate.variants,
+         Animal != "stock") %>% 
+  group_by(Animal, DPC, TCID50, RNA_Copies) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(Label= paste(Animal, " ", DPC, "-DPC", sep="")) %>% 
+  ggplot(aes(x = TCID50, y = n, col = DPC, label = Label)) + 
+    geom_point() + 
+    geom_text_repel(size = 2) + 
+    ggtitle("SNPs vs.TCID50") +
+    xlab("TCID50") + 
+    ylab("Allele Count") + 
+    theme_bw()+ 
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5))
+    
+
+```
+
+Interestingly, although RNA Copies seems to have a slight positive correlation with the number of variants called in a given sample, the TCID50 is a much better predictor. 
+
+## Shared Variants
+
+In the next analysis, I'll take these variants and attempt to calculate the transmission bottleneck for different sizes of aerosol and modes of transmission. However, this analysis can be heavily impacted by false positive variants. One possible indicator of false positive variants are variants shared between many unrelated samples. I'll investigate whether there are such variants present in our data below.
+
+First, I'll plot the distribution of variants shared across samples. 
+
+```{r All Shared Variants, echo = T, warning = F, fig.align='center', fig.width=3, fig.height=3}
+
+number.of.conditions = merged.df %>% select(Animal, DPI) %>% distinct() %>% nrow()
+
+merged.df %>% 
+  select(SNP, Animal, DPC) %>% 
+  group_by(SNP) %>% 
+  count() %>% 
+  ggplot(aes(x = n)) + 
+    geom_histogram(bins = 30) + 
+    xlab("Number of Samples") +
+    ylab("Number of Alleles") +
+    scale_x_continuous(limits = c(0, number.of.conditions)) + 
+    theme_bw()
+
+```
+
+As expected, although the majority of variants are unique, many are shared between samples. Some appear common to every sample. It's likely that a significant fraction of these are variants that were present in the isolate. Let's filter these out and see how the distribution changes. 
+
+```{r Isolate Dropped Shared Variants, echo = T, warning = F, fig.align='center', fig.width=3, fig.height=3}
+
+isolate.variants = merged.df %>% 
+  filter(Animal == "stock") %>% 
+  pull(SNP)
+
+merged.df %>% 
+  filter(Animal != "stock",
+         !SNP %in% isolate.variants
+         ) %>% 
+  select(SNP, Animal, DPC) %>% 
+  distinct() %>% 
+  group_by(SNP) %>% 
+  count() %>% 
+  ggplot(aes(x = n)) + 
+    geom_histogram(bins = 30) + 
+    xlab("Number of Samples") +
+    ylab("Number of Alleles") +
+    scale_x_continuous(limits = c(0, number.of.conditions)) + 
+    theme_bw()
+
+```
+
+This certainly improves the distribution. The question is whether the remaining variants are shared across experiments. This could indicate some kind of contamination or false variant that requires more stringency in the variant calling. 
+
+```{r Shared Variants Across Experiments, echo = T, warning = F, fig.align='center', fig.width=3, fig.height=3}
+
+merged.df %>% 
+  filter(Animal != "stock",
+         !SNP %in% isolate.variants
+         ) %>% 
+  select(SNP, Experiment) %>% 
+  distinct() %>% 
+  group_by(SNP) %>% 
+  count() %>% 
+  ggplot(aes(x = n)) + 
+    geom_histogram(bins = 30) + 
+    xlab("Number of Experiments") +
+    ylab("Number of Alleles") +
+    theme_bw()
+
+```
+
+Even accounting for the variants that were detected in the isolates, there are a handful of variants present in multiple experiments. Let's see what these variants look like. 
+
+```{r SNPs in many Experiments, echo = T}
+
+snps.in.multiple.experiments = merged.df %>% 
+  filter(Animal != "stock",
+         !SNP %in% isolate.variants
+         ) %>% 
+  select(SNP, Experiment) %>% 
+  distinct() %>% 
+  group_by(SNP) %>% 
+  count() %>% 
+  filter(n >= 2) %>% 
+  pull(SNP)
+
+```
+
+Accounting for the variants in the isolate, there are `r length(snps.in.multiple.experiments)` variants in more than one experiment.
+
+```{r Load raw variants, echo=T}
+
+variant.df = read_csv(variant.calls.data, show_col_types = FALSE) %>% 
+    mutate(SNP = paste(REF, POS, ALT, sep = "")) 
+
+```
+
+Some of these are possibly in the stock but missing due to filters. Going forward I'll keep in mind that there are still some recurrent variants and I'll test more stringent filters when calculating the bottleneck. 
+ 
+
