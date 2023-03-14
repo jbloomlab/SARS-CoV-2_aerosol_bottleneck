@@ -46,13 +46,13 @@ invisible(lapply(c(packages), library, character.only = TRUE))
 if (exists("snakemake")) {
   
   # Depth from `samtools depth` after primer trimming
-  trimmed.depth.data = snakemake@input[[2]]
+  trimmed.depth.data = snakemake@input[[1]]
   
   # Sample metadata
-  sample.metadata.data = snakemake@input[[3]]
+  sample.metadata.data = snakemake@input[[2]]
   
   # Variant calls from pysam, varscan, ivar, and lofreq
-  variant.calls.data = snakemake@input[[4]]
+  variant.calls.data = snakemake@input[[3]]
   
   
 } else {
@@ -83,7 +83,7 @@ variants.df = read_csv(variant.calls.data, show_col_types = FALSE) %>%
 
 The best way to visualize the overlap between variant callers is an `UpSet` plot. Below, I'll plot the overlap of variant callers without any extra filters applied.
 
-```{r Raw Variants Overlap, fig.align='center', fig.width=6, fig.height=3}
+```{r Raw Variants Overlap, fig.align='center', fig.width=8, fig.height=5}
 
 variants.df %>% 
   select(Run, SNP, CALLER) %>% 
@@ -100,6 +100,8 @@ variants.df %>%
         empty.intersections = "on",
         text.scale = 1.5)
 
+ggsave("raw_caller_upset_plot.png", width = 8, height = 5, dpi = 300)
+
 ```
 
 A significant number of the total variants are shared between all callers even without filters applied. The two callers with the most unique variants are `lofreq` and `pysam`. It's not surprising that `pysam` has many unique variants given that there are no probability based filters or tests applied. It's a bit more surprising that `lofreq` has so many variants, however, it's known to be a very sensitive variant caller that can have many false positives. 
@@ -114,9 +116,9 @@ min.obsv = min.depth * min.freq
 
 ```
 
-Below, I'm using a minimum allele frequency of `r min.freq`, a minimum depth of `r min.depth`, a minimum number of variants reads of `r min.obsv`, and a maximum strand bias of `r paste((strand.bias * 100), "%", sep="")` variants reads on a single strand.
+Below, I'm using a minimum allele frequency of `r min.freq`, a minimum depth of `r min.depth`, a minimum number of variants reads of `r min.obsv` variants reads on a single strand.
 
-```{r Filtered Variant Overlap, fig.align='center', fig.width=6, fig.height=3}
+```{r Filtered Variant Overlap, fig.align='center', fig.width=8, fig.height=5}
 
 filtered.variants.df = variants.df %>% 
   filter(
@@ -139,6 +141,8 @@ filtered.variants.df %>%
         order.by = "freq",
         empty.intersections = "on",
         text.scale = 1.5)
+
+ggsave("filtered_caller_upset_plot.png", width = 8, height = 5, dpi = 300)
 
 ```
 

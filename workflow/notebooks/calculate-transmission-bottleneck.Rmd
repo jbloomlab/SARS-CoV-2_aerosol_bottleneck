@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## ==== Install Required Packages ==== ##
 
 ## List of all packages needed
-packages = c("tidyverse", "rmutil")
+packages = c("tidyverse", "rmutil", "data.table")
 invisible(lapply(c(packages), library, character.only = TRUE))
 
 ```
@@ -46,8 +46,10 @@ if (exists("snakemake")) {
   
   # Merged variant calls from the previous notebook 
   merged.variant.calls.data = snakemake@input[[3]]
-
   
+  # Primer BED
+  primer.bed.data = snakemake@input[[4]]
+
 } else {
 
   # Sample metadata
@@ -59,11 +61,14 @@ if (exists("snakemake")) {
   # Merged variant calls from the previous notebook 
   merged.variant.calls.data = "../../results/variants/merged_variants.csv"
   
+  # Primer BED
+  primer.bed.data = "../../results/reference/primers/primers.bed"
+  
 }
 
 ```
 
-```{r Load Data, echo=TRUE}
+```{r Load Data, echo=TRUE, warning=FALSE}
 
 merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
   # Fix the naming scheme of experiment 19 
@@ -72,13 +77,25 @@ merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>%
     Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
     TRUE ~ Condition
   )) %>% 
-  # Harmonize the pair names to contact and donor
+  # Standardize the pair names to contact and donor
   mutate(Pair = case_when(
     Pair == 'aerosol' ~ 'contact',
     Pair == 'direct' ~ 'contact',
     Pair == 'recipient' ~ 'contact',
     TRUE ~ Pair
   ))
+
+# Un-merged variant calls
+variant.df = read_csv(variant.calls.data, show_col_types = FALSE)
+
+# Primer positions
+primer.df = fread(primer.bed.data) %>% 
+  select(contig = V1,
+         start = V2, 
+         end = V3, 
+         name = V4, 
+         qual = V5, 
+         direction = V6)
 
 ```
 
@@ -99,22 +116,22 @@ approx.transmission.bottleneck = function(transmission.pair.df,
   # This function gives Log Likelihood for every donor recipient SNP frequency pair
   log.beta.binom = function(nu.donor, nu.contact, NB.size, freq.threshold){ 
     
-    nu.donor = if_else(nu.contact <= (1 - freq.threshold), nu.donor,  1 - nu.donor)
-    nu.contact = if_else(nu.contact <= (1 - freq.threshold), nu.contact,  1 - nu.contact)
+      nu.donor = if_else(nu.contact <= (1 - freq.threshold), nu.donor,  1 - nu.donor)
+      nu.contact = if_else(nu.contact <= (1 - freq.threshold), nu.contact,  1 - nu.contact)
+      
+      ll.above = 0 
+      ll.below = 0 
+      for(k in 0:NB.size){
+        ll.above = ll.above + dbeta(nu.contact, k, (NB.size - k) ) * dbinom(k, size = NB.size, prob = nu.donor)  
+        ll.below = ll.below + pbeta(freq.threshold, k, (NB.size - k)) * dbinom(k, size = NB.size, prob = nu.donor)
+        } 
     
-    ll.above = 0 
-    ll.below = 0 
-    for(k in 0:NB.size){
-      ll.above = ll.above + dbeta(nu.contact, k, (NB.size - k) ) * dbinom(k, size = NB.size, prob = nu.donor)  
-      ll.below = ll.below + pbeta(freq.threshold, k, (NB.size - k)) * dbinom(k, size = NB.size, prob = nu.donor)
-      } 
-  
-  # We use LL_val_above above the calling threshold, and LL_val_below below the calling threshold
-  ll.val = if_else(nu.contact >= freq.threshold , ll.above,  ll.below )
-  # Convert likelihood to log likelihood
-  ll.val = log(ll.val) 
-  
-  return(ll.val)
+    # We use LL_val_above above the calling threshold, and LL_val_below below the calling threshold
+    ll.val = if_else(nu.contact >= freq.threshold , ll.above,  ll.below )
+    # Convert likelihood to log likelihood
+    ll.val = log(ll.val) 
+    
+    return(ll.val)
   }
   
   # This function sums over all SNP frequencies in the donor and recipient
@@ -172,7 +189,11 @@ approx.transmission.bottleneck = function(transmission.pair.df,
 
 ```
 
-Then, I'll get all of the pairwise comparisons between conditions in each cage (`Experiment`).
+## Unfiltered Bottleneck
+
+I'll use the merged variants from multiple replicates and variant callers to calculate the bottleneck. I won't add any additional filters that weren't used identify this set of variants. 
+
+First, I'll get all of the pairwise comparisons between conditions in each cage (`Experiment`).
 
 ```{r Donor Contact Pairs, echo=T}
 
@@ -199,7 +220,7 @@ combinations.df = merged.df %>%
 
 ```
 
-It's also necessary to determine the number of days post infection for the samples being compared. Ideally, the earliest number for days post contact will provide the most accurate bottleneck measurement. 
+Then, I'll determine the number of days post infection for the samples being compared. Ideally, the earliest time post contact will provide the most accurate bottleneck measurement. 
 
 ```{r Check Earliest Time}
 
@@ -224,9 +245,10 @@ for (i in 1:nrow(combinations.df)) {
 
 }
 
+head(combinations.df)
 ```
 
-I'll iterate over these comparisons and calculate the bottleneck for each. I'll also save the data frame comparing each animal to plot 'TV' plots showing the frequency of alleles in the donor and the contact. 
+I'll iterate over each of these comparisons and calculate the bottleneck using the beta binomial method defined above. I'll also save the data frame comparing each animal to plot 'TV' plots showing the frequency of alleles in the donor and the contact. 
 
 ```{r Bottleneck without Filter, echo=TRUE}
 
@@ -285,14 +307,14 @@ for (i in 1:nrow(combinations.df)) {
   
 ```
 
-Let's see how the bottlenecks summarized for each condition. Below, I'm plotting the bottleneck size for each pairwise comparison as a point. I'm plotting the mean of those comparisons as a black circle. The error bars represent the minimum lower bound of a 95% CI and the maximum upper bound of a 95% CI for the comparisons being summarized. 
+Let's see how the bottlenecks summarized for each condition. Below, I'm plotting the bottleneck size for each pairwise comparison as a point. I'm plotting the mean of those comparisons as a black circle. The error bars represent the **minimum lower bound of a 95% CI and the maximum upper bound of a 95% CI for the comparisons being summarized**. These error bars are certainly too conservative. One question is *what is an appropriate way to combine animals from the same cage?*
 
-```{r Plot Raw Bottlenecks, echo=T, fig.align='center', fig.width=6, fig.height=3}
+```{r Plot Raw Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
 
 # Condition order 
 condition.order = c("no impactor",
-                    "2.5 um impactor",
                     "5 um impactor",
+                    "2.5 um impactor",
                     "aerosol transmission",
                     "direct transmission")
 
@@ -326,13 +348,15 @@ bottleneck.df %>%
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
     theme(legend.position = "none")
 
+ggsave("./unfiltered_bottleneck.png", width = 8, height = 4)
+
 ```
 
-Interestingly, it does look like decreasing the aerosol size slightly decreases the average bottleneck. However, there is a lot of noise and it's important to determine whether this is due to artifacts. 
+Generally, the trend isn't super clear other than direct transmission seems to have a looser bottleneck than aerosol transmission. Also, aerosol transmission seems to have a tighter bottleneck than when an impactor is used. However, it's important to make sure that these results aren't being skewed by artifacts.
 
-Additionally, the bottleneck size is higher than I would expect given the literature. Below, I'll plot the TV plots for each experiment to see exactly how many variants are shared between donor and contact. 
+As I showed in the previous notebook, there are variants shared between cages that weren't detected in the isolate. These could be an indication of false-positives that could skew the bottleneck calculation towards higher than actual values. In fact, given the literature, the bottleneck is higher than I would naively expect. Below, I'll plot 'TV' plots comparing the frequency of variants between the donors and contacts. This will show us if there are any unusual patterns.
 
-```{r Raw TV Plots, echo=T, fig.align='center', fig.width=6, fig.height=6}
+```{r Raw TV Plots, echo=T, fig.align='center', fig.width=8, fig.height=8}
 
 tv.df %>% 
   separate(Pair, c("donor_animal", "contact_animal"), sep = "-") %>% 
@@ -343,18 +367,596 @@ tv.df %>%
     facet_wrap(~Experiment) +
     theme_bw()
 
+ggsave("./unfiltered_tv_plot.png", width = 8, height = 8)
+
 ```
 
-These TV plots are revealing because although you often see variants fixing in the contacts in every experiment/cage, there are also many variants at low frequency that are shared at remarkably similar frequency. It's important to figure out what these are and if they are real. 
+Indeed, there are some variants that see to be present at similar low frequencies between donors and contacts. This somewhat defies our expectations given that we often see variants fixing in the contacts in experiments/cages, which requires a fairly tight bottleneck that wouldn't preserve the frequency of these minor variants between donors and contacts. 
 
-## Filter the Variants
+Below, I'll try to figure out what these variants are and see if they're present outside of individual cages. I'll plot the animals on the x-axis, the allele frequency on the y-axis, I'll color an animal by whether it's a donor or contact, and I'll show the frequency of the variant in the isolate. 
 
-I'll test the effect on the bottleneck of adding more stringent filters to the variants including a strand bias filter, higher coverage filter, and higher minimum frequency. 
+```{r Shared Variants, echo=T, fig.width=25, fig.height=20, fig.align="center"}
+
+# Get the amino acid annotations for each variant from Pysam
+amino_acid_annotations = variant.df %>% 
+  filter(CALLER == 'pysam') %>% 
+  select(POS, REF, ALT, POS_AA, REF_AA, ALT_AA, GENE) %>% 
+  mutate(SNP = paste(REF, POS, ALT, sep = "")) %>% 
+  select(!c(POS, REF, ALT)) %>% 
+  distinct()
+
+# Fixed in the isolate
+fixed.in.isolate = merged.df %>%  
+  filter(Animal == "stock",
+         AF >= .98) %>% 
+  pull(SNP)
+  
+# Variants between donor and contact
+trasmitted.snps = tv.df %>% 
+  filter(donor > 0 & contact > 0,
+         !SNP %in% fixed.in.isolate) %>% 
+  pull(SNP) %>% 
+  unique()
+
+# Get all of the variants in the isolate
+isolate.variants = variant.df %>% 
+  filter(CALLER == 'pysam') %>% 
+  filter(Animal == "stock") %>% 
+  select(POS, REF, ALT, POS_AA, REF_AA, ALT_AA, GENE, Animal, Pair, Experiment, Condition, DPC, AF) %>% 
+  mutate(SNP = paste(REF, POS, ALT, sep = "")) %>% 
+  mutate(AA_Change = paste(GENE, ":", " ", REF_AA, POS_AA, ALT_AA, sep="")) %>% 
+  mutate(AA_Change = case_when(
+    is.na(GENE) ~ "intergenic", 
+    TRUE ~ AA_Change
+  )) %>% 
+  mutate(Mutation = paste(SNP, " (", AA_Change , ")")) %>% 
+  filter(SNP %in% trasmitted.snps)  
+
+# Expand the merged variants data frame with variant records for every animal (including presence and absence)
+# experiment_ids = c("Animal", "Pair", "Experiment", "Condition", "DPC")
+expanded.merged.df = merged.df %>% 
+  select(POS, REF, ALT, SNP, Animal, Pair, Experiment, Condition, DPC, AF) %>% 
+  # pivot_wider(id_cols = experiment_ids, names_from = SNP, values_from = AF, values_fill = 0) %>% 
+  # pivot_longer(!experiment_ids, names_to = "SNP", values_to = "AF") %>% 
+  left_join(., amino_acid_annotations, by = "SNP") %>% 
+  filter(SNP %in% trasmitted.snps)  %>% 
+  mutate(AA_Change = paste(GENE, ":", " ", REF_AA, POS_AA, ALT_AA, sep="")) %>% 
+  mutate(AA_Change = case_when(
+    is.na(GENE) ~ "intergenic", 
+    TRUE ~ AA_Change
+  )) %>% 
+  mutate(Animal_Number = if_else(str_sub(Animal, -1, - 1)   == "1", "1", "2")) %>% 
+  mutate(Mutation = paste(SNP, " (", AA_Change , ")")) 
+  
+# Condition order 
+shortened.condition.order = c("none",
+                    "5 um",
+                    "2 um",
+                    "aerosol",
+                    "direct")
+
+# Fix the fact that the same donor was used for aerosol and direct conditions
+ivc.cage.variants = expanded.merged.df %>% 
+  filter(Condition == "no impactor/IVC cage") 
+ivc.cage.variants.aerosol = ivc.cage.variants %>% 
+  mutate(Condition = "aerosol transmission")
+ivc.cage.variants.direct = ivc.cage.variants %>% 
+  mutate(Condition = "direct transmission")
+expanded.merged.df = expanded.merged.df %>% 
+  filter(Condition != "no impactor/IVC cage") %>% 
+  bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
+  mutate(Condition = case_when(
+    Condition == "no impactor" ~ "none",
+    Condition == "5 um impactor" ~ "5 um",
+    Condition == "2.5 um impactor" ~ "2 um",
+    Condition == "aerosol transmission" ~ "aerosol",
+    Condition == "direct transmission" ~ "direct"
+  )) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), shortened.condition.order)) 
+
+# Plot the variants
+expanded.merged.df %>% 
+  filter(Animal != "stock") %>% 
+  ggplot(aes(x = Condition, y = AF)) +
+    geom_hline(data = isolate.variants, aes(yintercept = AF), col = "#bd00ba", size = 1, linetype = "dashed") +
+    geom_jitter(aes(col = Pair, group = Pair, shape = Animal_Number), na.rm=TRUE, position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9), size = 5, alpha = 0.6) +
+    facet_wrap(~fct_reorder(Mutation, POS, min)) +
+    # Annotate the separation between experiments
+    geom_vline(xintercept = 1.5, linetype = 2, col = "grey") + 
+    geom_vline(xintercept = 2.5, linetype = 2, col = "grey") + 
+    geom_vline(xintercept = 3.5, linetype = 2, col = "grey") + 
+    geom_vline(xintercept = 4.5, linetype = 2, col = "grey") + 
+
+    xlab("Animal") +
+    ylab("Allele Frequency") + 
+    scale_color_manual(values = c("#bd0000", "#0013bd"), name = "") +
+    theme_classic()  +
+      theme(legend.position="bottom", legend.box = "horizontal") +
+      theme(legend.box.background = element_rect(colour = "black")) +
+      theme(text=element_text(size=24,  family="Helvetica")) +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(panel.background = element_rect(fill = NA, color = "black")) +
+      theme(axis.text.x = element_text(size = 18)) + 
+      theme(panel.spacing = unit(2, "lines")) + 
+      theme(axis.ticks.length=unit(.25, "cm")) +
+      guides(shape = FALSE)
+
+ggsave("./unfiltered_shared_variant_plot.png", width = 25, height = 20)
+
+```
+
+## Filtered Bottleneck
+
+Below, I'm going to try some more stringent filters to remove possible false-positive variants that might bias the bottleneck estimation. In the previous notebook, I noticed that there we some variants shared between cages that weren't present in the isolate. These could drastically impact the bottleneck size. 
 
 ```{r Filter the Merged Variants, echo=T}
 
-merged.df %>% 
-  filter(ADF/ADR)
+# Try some more stringent filters
+min.obsv = 100
+min.bias = .85
+min.freq = 0.03
+
+# Get the SNPs that are in primer stretches 
+snps.in.primers = merged.df %>% 
+  select(POS, SNP) %>% 
+  left_join(., select(primer.df, c(start, end)), by = character()) %>% 
+  mutate(in_primer = between(POS, start, end, incbounds = TRUE)) %>% 
+  filter(in_primer) %>% 
+  pull(SNP) %>% 
+  unique()
+  
+# Filter the merged data frame
+filtered.merged.df = merged.df %>% 
+  mutate(OBSV = ADR + ADF) %>% 
+  mutate(BIAS = pmax(ADR, ADF) / OBSV) %>% 
+  filter(
+    OBSV >= min.obsv,
+    BIAS <= min.bias,
+    AF >= min.freq,
+    !SNP %in% snps.in.primers
+  )
 
 ```
+
+I added a filter to remove variants with fewer than `r min.obsv` reads with variant alleles, less than `r min.bias` percent of one read direction supporting a variant, and less than `r min.freq` allele frequency. Additionally, although primers should be trimmed from the reads based on their direction, some primer sequences are still left in. I'll see if there are variants that are present in primer sequences and mask these. 
+
+Now, I'll calculate the bottleneck for this new set of reads. 
+
+```{r Calculate Filtered Bottleneck, echo=T}
+
+filtered.bottleneck.df = data.frame()
+filtered.tv.df = data.frame()
+for (i in 1:nrow(combinations.df)) {
+  
+  # Donor information
+  donor = combinations.df[i,]$donor
+  donor.dpc = combinations.df[i,]$donor_dpc
+  donor.df = filtered.merged.df %>% 
+    filter(Animal == donor, 
+           DPC == donor.dpc) %>% 
+    mutate(donor = AF) %>% 
+    select(SNP, donor)
+    
+  # Contact information
+  contact = combinations.df[i,]$contact
+  contact.dpc = combinations.df[i,]$contact_dpc
+  contact.df = filtered.merged.df %>% 
+    filter(Animal == contact, 
+           DPC == contact.dpc) %>% 
+    mutate(contact = AF) %>% 
+    select(SNP, contact)
+  
+  # Combine into single data frame
+  transmission.pair.df = full_join(donor.df, contact.df, by = "SNP") %>% 
+    mutate(donor = if_else(is.na(donor), 0, donor),
+           contact = if_else(is.na(contact), 0, contact)) 
+  
+  # Calculate the bottleneck
+  bottleneck = approx.transmission.bottleneck(transmission.pair.df,
+                                 freq.threshold = min.freq,
+                                 Nb.min = 1,
+                                 Nb.max = 500,
+                                 Nb.increment = 1,
+                                 confidence.interval = .95)
+  
+  # Make a new bottleneck row
+  bottleneck.row = list(lower_ci = bottleneck[1], 
+                        upper_ci = bottleneck[3],
+                        bottleneck = bottleneck[2],
+                        experiment = combinations.df[i,]$Experiment,
+                        donor = donor,
+                        contact = contact)
+
+  # Append the row to the bottleneck data frame 
+  filtered.bottleneck.df = rbind(filtered.bottleneck.df, bottleneck.row)
+  
+  # Append frequencies from joined pairs for the TV plots
+  transmission.pair.df$Experiment  = combinations.df[i,]$Experiment
+  transmission.pair.df$Pair  = paste(donor, contact, sep = "-")
+  filtered.tv.df = rbind(filtered.tv.df, transmission.pair.df)
+
+}
+
+```
+
+Now, I'll plot the bottleneck to see how these filters effect our expectations. 
+
+```{r Plot Filtered Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+
+# Calculate the mean bottleneck for each condition
+mean.filtered.bottleneck = filtered.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) %>% 
+  group_by(Condition) %>% 
+  summarize(bottleneck = mean(bottleneck),
+            lower_ci = min(lower_ci),
+            upper_ci = max(upper_ci))
+
+# Add the conditions to the data frame and plot 
+filtered.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) %>%  
+  ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
+    geom_errorbar(data = mean.filtered.bottleneck, aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point(data = mean.filtered.bottleneck, shape = 1, size = 3, col = "black") + 
+    geom_jitter(width = 0.1) + 
+    xlab("") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
+    theme(legend.position = "none")
+
+ggsave("./filtered_bottleneck.png", width = 8, height = 4)
+
+```
+
+Generally, the relationship holds, which is pretty interesting. Let's see what the 'TV' plots look like. These will give us some sense of whether we got rid of variants that could be false-positives. 
+
+```{r Filtered TV Plots, echo=T, fig.align='center', fig.width=8, fig.height=8}
+
+filtered.tv.df %>% 
+  separate(Pair, c("donor_animal", "contact_animal"), sep = "-") %>% 
+  left_join(., conditions, by = c("contact_animal" = "Animal")) %>% 
+  mutate(Experiment = paste(Experiment, " (", Condition, ")", sep = "")) %>% 
+  ggplot(aes(x = donor, y = contact)) + 
+    geom_point() + 
+    facet_wrap(~Experiment) +
+    theme_bw()
+
+ggsave("./filtered_tv_plot.png", width = 8, height = 8)
+
+```
+
+Let's take a closer look at the shared variants that are left over.
+
+```{r Filtered Shared Variants, echo=T, fig.width=25, fig.height=20, fig.align="center"}
+
+# Get the amino acid annotations for each variant from Pysam
+amino_acid_annotations = variant.df %>% 
+  filter(CALLER == 'pysam') %>% 
+  select(POS, REF, ALT, POS_AA, REF_AA, ALT_AA, GENE) %>% 
+  mutate(SNP = paste(REF, POS, ALT, sep = "")) %>% 
+  select(!c(POS, REF, ALT)) %>% 
+  distinct()
+
+# Fixed in the isolate
+fixed.in.isolate = merged.df %>%  
+  filter(Animal == "stock",
+         AF >= .98) %>% 
+  pull(SNP)
+  
+# Variants between donor and contact
+trasmitted.snps = filtered.tv.df %>% 
+  filter(donor > 0 & contact > 0,
+         !SNP %in% fixed.in.isolate) %>% 
+  pull(SNP) %>% 
+  unique()
+
+# Get all of the variants in the isolate
+filtered.isolate.variants = variant.df %>% 
+  filter(CALLER == 'pysam') %>% 
+  filter(Animal == "stock") %>% 
+  select(POS, REF, ALT, POS_AA, REF_AA, ALT_AA, GENE, Animal, Pair, Experiment, Condition, DPC, AF) %>% 
+  mutate(SNP = paste(REF, POS, ALT, sep = "")) %>% 
+  mutate(AA_Change = paste(GENE, ":", " ", REF_AA, POS_AA, ALT_AA, sep="")) %>% 
+  mutate(AA_Change = case_when(
+    is.na(GENE) ~ "intergenic", 
+    TRUE ~ AA_Change
+  )) %>% 
+  mutate(Mutation = paste(SNP, " (", AA_Change , ")")) %>% 
+  filter(SNP %in% trasmitted.snps)  
+
+# Expand the merged variants data frame with variant records for every animal (including presence and absence)
+# experiment_ids = c("Animal", "Pair", "Experiment", "Condition", "DPC")
+expanded.merged.df = filtered.merged.df %>% 
+  select(POS, REF, ALT, SNP, Animal, Pair, Experiment, Condition, DPC, AF) %>% 
+  # pivot_wider(id_cols = experiment_ids, names_from = SNP, values_from = AF, values_fill = 0) %>% 
+  # pivot_longer(!experiment_ids, names_to = "SNP", values_to = "AF") %>% 
+  left_join(., amino_acid_annotations, by = "SNP") %>% 
+  filter(SNP %in% trasmitted.snps)  %>% 
+  mutate(AA_Change = paste(GENE, ":", " ", REF_AA, POS_AA, ALT_AA, sep="")) %>% 
+  mutate(AA_Change = case_when(
+    is.na(GENE) ~ "intergenic", 
+    TRUE ~ AA_Change
+  )) %>% 
+  mutate(Animal_Number = if_else(str_sub(Animal, -1, - 1)   == "1", "1", "2")) %>% 
+  mutate(Mutation = paste(SNP, " (", AA_Change , ")")) 
+  
+# Condition order 
+shortened.condition.order = c("none",
+                    "5 um",
+                    "2 um",
+                    "aerosol",
+                    "direct")
+
+# Fix the fact that the same donor was used for aerosol and direct conditions
+ivc.cage.variants = expanded.merged.df %>% 
+  filter(Condition == "no impactor/IVC cage") 
+ivc.cage.variants.aerosol = ivc.cage.variants %>% 
+  mutate(Condition = "aerosol transmission")
+ivc.cage.variants.direct = ivc.cage.variants %>% 
+  mutate(Condition = "direct transmission")
+expanded.merged.df = expanded.merged.df %>% 
+  filter(Condition != "no impactor/IVC cage") %>% 
+  bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
+  mutate(Condition = case_when(
+    Condition == "no impactor" ~ "none",
+    Condition == "5 um impactor" ~ "5 um",
+    Condition == "2.5 um impactor" ~ "2 um",
+    Condition == "aerosol transmission" ~ "aerosol",
+    Condition == "direct transmission" ~ "direct"
+  )) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), shortened.condition.order)) 
+
+# Plot the variants
+expanded.merged.df %>% 
+  filter(Animal != "stock") %>% 
+  ggplot(aes(x = Condition, y = AF)) +
+    geom_hline(data = filtered.isolate.variants, aes(yintercept = AF), col = "#bd00ba", size = 1, linetype = "dashed") +
+    geom_jitter(aes(col = Pair, group = Pair, shape = Animal_Number), na.rm=TRUE, position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9), size = 5, alpha = 0.6) +
+    facet_wrap(~fct_reorder(Mutation, POS, min)) +
+    # Annotate the separation between experiments
+    geom_vline(xintercept = 1.5, linetype = 2, col = "grey") + 
+    geom_vline(xintercept = 2.5, linetype = 2, col = "grey") + 
+    geom_vline(xintercept = 3.5, linetype = 2, col = "grey") + 
+    geom_vline(xintercept = 4.5, linetype = 2, col = "grey") + 
+  
+    xlab("Animal") +
+    ylab("Allele Frequency") + 
+    scale_color_manual(values = c("#bd0000", "#0013bd"), name = "") +
+    theme_classic()  +
+      theme(legend.position="bottom", legend.box = "horizontal") +
+      theme(legend.box.background = element_rect(colour = "black")) +
+      theme(text=element_text(size=24,  family="Helvetica")) +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      theme(panel.background = element_rect(fill = NA, color = "black")) +
+      theme(axis.text.x = element_text(size = 18)) + 
+      theme(panel.spacing = unit(2, "lines")) + 
+      theme(axis.ticks.length=unit(.25, "cm")) +
+      guides(shape = FALSE)
+
+
+ggsave("./filtered_shared_variant_plot.png", width = 25, height = 20)
+
+```
+
+## Bottleneck Variability
+
+It's clear that with stringent filters, the estimate for the bottleneck is pretty variable. It's hard to say whether this is due to some natural feature of the system, the fact that not all donor-contact pairs are true donor-contact pairs, or false-positive variants. 
+
+One way to explore some of this inherent variability is to see how variable the bottleneck is between the stock and the contacts. We know that the stock was used to inoculate the contacts. Therefore, the bottleneck should be significantly higher than the transmission pairs above. 
+
+```{r Stock Contact Bottleneck, echo=TRUE, warning=FALSE}
+
+# Make a data frame of isolate/contact pairs 
+stock.comparison.df = merged.df %>% 
+  filter(Pair == "donor") %>% 
+  select(Experiment, contact = "Animal")  %>% 
+  distinct() %>% 
+  mutate(donor = "stock")
+
+# Add the earliest time points from each animal to the data frame
+for (i in 1:nrow(stock.comparison.df)) {
+  # Get the donor and the contact 
+  donor = stock.comparison.df[i,]$donor
+  contact = stock.comparison.df[i,]$contact
+  # Get the earliest day for each condition
+  earliest.donor.dpc = merged.df %>% 
+    filter(Animal == donor) %>% 
+    pull(DPC) %>% 
+    min()
+  earliest.contact.dpc = merged.df %>% 
+    filter(Animal == contact) %>% 
+    pull(DPC) %>% 
+    min()
+  # Add these to the combinations
+  stock.comparison.df$donor_dpc[i] = earliest.donor.dpc
+  # Add these to the combinations
+  stock.comparison.df$contact_dpc[i] = earliest.contact.dpc
+}
+
+# Calculate the bottleneck between the stock and each time point
+stock.bottleneck.df = data.frame()
+stock.tv.df = data.frame()
+for (i in 1:nrow(stock.comparison.df)) {
+  
+  # Donor information
+  donor = stock.comparison.df[i,]$donor
+  donor.dpc = stock.comparison.df[i,]$donor_dpc
+  donor.df = merged.df %>% 
+    filter(Animal == donor, 
+           DPC == donor.dpc) %>% 
+    mutate(donor = AF) %>% 
+    select(SNP, donor)
+    
+  # Contact information
+  contact = stock.comparison.df[i,]$contact
+  contact.dpc = stock.comparison.df[i,]$contact_dpc
+  contact.df = merged.df %>% 
+    filter(Animal == contact, 
+           DPC == contact.dpc) %>% 
+    mutate(contact = AF) %>% 
+    select(SNP, contact)
+  
+  # Combine into single data frame
+  transmission.pair.df = full_join(donor.df, contact.df, by = "SNP") %>% 
+    mutate(donor = if_else(is.na(donor), 0, donor),
+           contact = if_else(is.na(contact), 0, contact)) 
+  
+  # Calculate the bottleneck
+  bottleneck = approx.transmission.bottleneck(transmission.pair.df,
+                                 freq.threshold = 0.02,
+                                 Nb.min = 1,
+                                 Nb.max = 500,
+                                 Nb.increment = 1,
+                                 confidence.interval = .95)
+  
+  # Make a new bottleneck row
+  bottleneck.row = list(lower_ci = bottleneck[1], 
+                        upper_ci = bottleneck[3], 
+                        bottleneck = bottleneck[2],
+                        experiment = stock.comparison.df[i,]$Experiment,
+                        donor = donor,
+                        contact = contact)
+
+  # Append the row to the bottleneck data frame 
+  stock.bottleneck.df = rbind(stock.bottleneck.df, bottleneck.row)
+  
+  # Append frequencies from joined pairs for the TV plots
+  transmission.pair.df$Experiment  = stock.comparison.df[i,]$Experiment
+  transmission.pair.df$Pair = paste(donor, contact, sep = "-")
+  stock.tv.df = rbind(stock.tv.df, transmission.pair.df)
+
+}
+
+
+```
+
+Now, let's see what the bottleneck looks like between the stock and each donor animal
+
+```{r Plot Stock Bottleneck, echo=TRUE, fig.align='center', fig.width=8, fig.height=4}
+
+# Add the conditions to the data frame and plot 
+stock.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  ggplot(aes(x = contact, y = bottleneck, col = Condition)) + 
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point(size = 3) + 
+    xlab("Contact Animal") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    theme(legend.position = "bottom")
+
+ggsave("./stock_bottleneck.png", width = 8, height = 4)
+
+
+```
+
+There is some variability in the bottleneck estimate, but less than I might have expected. Let's see if this improves when we use the filtered set of variants. 
+
+```{r Plot Filtered Stock Bottleneck, echo = T, warning=FALSE}
+
+# Make a data frame of isolate/contact pairs 
+stock.comparison.df = filtered.merged.df %>% 
+  filter(Pair == "donor") %>% 
+  select(Experiment, contact = "Animal")  %>% 
+  distinct() %>% 
+  mutate(donor = "stock")
+
+# Add the earliest time points from each animal to the data frame
+for (i in 1:nrow(stock.comparison.df)) {
+  # Get the donor and the contact 
+  donor = stock.comparison.df[i,]$donor
+  contact = stock.comparison.df[i,]$contact
+  # Get the earliest day for each condition
+  earliest.donor.dpc = filtered.merged.df %>% 
+    filter(Animal == donor) %>% 
+    pull(DPC) %>% 
+    min()
+  earliest.contact.dpc = filtered.merged.df %>% 
+    filter(Animal == contact) %>% 
+    pull(DPC) %>% 
+    min()
+  # Add these to the combinations
+  stock.comparison.df$donor_dpc[i] = earliest.donor.dpc
+  # Add these to the combinations
+  stock.comparison.df$contact_dpc[i] = earliest.contact.dpc
+}
+
+# Calculate the bottleneck between the stock and each time point
+stock.bottleneck.df = data.frame()
+stock.tv.df = data.frame()
+for (i in 1:nrow(stock.comparison.df)) {
+  
+  # Donor information
+  donor = stock.comparison.df[i,]$donor
+  donor.dpc = stock.comparison.df[i,]$donor_dpc
+  donor.df = filtered.merged.df %>% 
+    filter(Animal == donor, 
+           DPC == donor.dpc) %>% 
+    mutate(donor = AF) %>% 
+    select(SNP, donor)
+    
+  # Contact information
+  contact = stock.comparison.df[i,]$contact
+  contact.dpc = stock.comparison.df[i,]$contact_dpc
+  contact.df = filtered.merged.df %>% 
+    filter(Animal == contact, 
+           DPC == contact.dpc) %>% 
+    mutate(contact = AF) %>% 
+    select(SNP, contact)
+  
+  # Combine into single data frame
+  transmission.pair.df = full_join(donor.df, contact.df, by = "SNP") %>% 
+    mutate(donor = if_else(is.na(donor), 0, donor),
+           contact = if_else(is.na(contact), 0, contact)) 
+  
+  # Calculate the bottleneck
+  bottleneck = approx.transmission.bottleneck(transmission.pair.df,
+                                 freq.threshold = 0.02,
+                                 Nb.min = 1,
+                                 Nb.max = 500,
+                                 Nb.increment = 1,
+                                 confidence.interval = .95)
+  
+  # Make a new bottleneck row
+  bottleneck.row = list(lower_ci = bottleneck[1], 
+                        upper_ci = bottleneck[3], 
+                        bottleneck = bottleneck[2],
+                        experiment = stock.comparison.df[i,]$Experiment,
+                        donor = donor,
+                        contact = contact)
+
+  # Append the row to the bottleneck data frame 
+  stock.bottleneck.df = rbind(stock.bottleneck.df, bottleneck.row)
+  
+  # Append frequencies from joined pairs for the TV plots
+  transmission.pair.df$Experiment  = stock.comparison.df[i,]$Experiment
+  transmission.pair.df$Pair = paste(donor, contact, sep = "-")
+  stock.tv.df = rbind(stock.tv.df, transmission.pair.df)
+
+}
+
+# Add the conditions to the data frame and plot 
+stock.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  ggplot(aes(x = contact, y = bottleneck, col = Condition)) + 
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point(size = 3) + 
+    xlab("Contact Animal") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    theme(legend.position = "bottom")
+
+ggsave("./filtered_stock_bottleneck.png", width = 8, height = 4)
+
+
+```
+
+## Conclusion
+
+Generally, the conclusion of this notebook so far is that the bottleneck is narrow, but it still influenced by possible false positive variants. It's not totally clear what the impact of particle size is on the bottleneck. Generally it seems like the bottleneck isn't strong influenced. 
+
 

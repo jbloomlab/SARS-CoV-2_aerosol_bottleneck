@@ -100,6 +100,8 @@ untrimmed.depth.df %>%
     theme_bw(18) + 
     theme(plot.title = element_text(hjust = 0.5))
 
+ggsave("./untrimmed_read_depth.png", width = 8, height = 6)
+
 ```
 
 There are two main observations to be made here. (1) There is something strange going on for a couple samples in the first round of sequencing where a single amplicon appears to be much more highly covered than in other samples. (2) Depth is generally lower in the second round of sequencing and some regions around the middle of the genome are not covered in a handful of samples. This is to be expected, because many of these samples are from later time-points where viral copy number was low.
@@ -122,6 +124,8 @@ trimmed.depth.df %>%
     facet_wrap(~Round, nrow = 2) +
     theme_bw(18) + 
     theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("./trimmed_read_depth.png", width = 8, height = 6)
 
 ```
 
@@ -151,7 +155,7 @@ trimmed.coverage.df = trimmed.depth.df %>%
 
 Theoretically, coverage should be a function of the number of templates being sequenced. As a proxy of this, I'll plot the percentage of the genome covered by `r min.depth` reads or more. A possible threshold for whether or not to include runs in the downstream variant calling is `r paste(min.frac, "% >= ", min.depth, "X coverage", sep="")`. I'll draw this on the chart as well. 
 
-```{r TCID50 v. Coverage, echo=TRUE, warning=FALSE, fig.align='center'}
+```{r TCID50 v. Coverage, echo=TRUE, warning=FALSE, fig.align='center', fig.width = 4, fig.height = 4}
 
 trimmed.coverage.df %>% 
   ggplot(aes(x = Coverage, y = TCID50, col = as_factor(Sequencing_Round))) + 
@@ -160,13 +164,16 @@ trimmed.coverage.df %>%
     xlab(paste("% > ", min.depth, "X Coverage", sep="")) + 
     ylab("Log TCID50") + 
     scale_color_manual(values = c("#E69F00", "#56B4E9"), name = "Sequencing Round") + 
-    theme_bw(18)
+    theme_bw() + 
+    theme(legend.position = "bottom")
+
+ggsave("./trimmed_coverage_v_TCID50.png", width = 4, height = 4)
 
 ```
 
 Below, I've also plotted percent genomic coverage by the RNA copy number. 
 
-```{r RNA Copies v. Coverage, echo=TRUE, warning=FALSE, fig.align='center'}
+```{r RNA Copies v. Coverage, echo=TRUE, warning=FALSE, fig.align='center', fig.align='center', fig.width = 4, fig.height = 4}
 
 trimmed.coverage.df %>% 
   ggplot(aes(x = Coverage, y = RNA_Copies, col = as_factor(Sequencing_Round))) + 
@@ -175,12 +182,15 @@ trimmed.coverage.df %>%
     xlab(paste("% > ", min.depth, "X Coverage", sep="")) + 
     ylab("Viral Copy Number") + 
     scale_color_manual(values = c("#E69F00", "#56B4E9"), name = "Sequencing Round") + 
-    theme_bw(18)
+    theme_bw()  + 
+    theme(legend.position = "bottom")
+
+ggsave("./trimmed_coverage_v_RNA_Copies.png", width = 4, height = 4)
 
 ```
 Both of these plots show effectively the same thing. There are about `r length(filter(trimmed.coverage.df, Coverage >= 80))` runs that would fail a coverage requirement of `r paste(min.frac, "% >= ", min.depth, "X coverage", sep="")`. What are these samples? 
 
-```{r Coverage Fail by DPI, echo=TRUE, warning=FALSE, fig.align='center'}
+```{r Coverage Fail by DPI, echo=TRUE, warning=FALSE, fig.align='center', fig.align='center', fig.width = 4, fig.height = 4}
 
 trimmed.coverage.df %>% 
   mutate(Fail = if_else(Coverage < min.frac, "Low Coverage", "Acceptable Coverage")) %>% 
@@ -191,8 +201,11 @@ trimmed.coverage.df %>%
     scale_color_manual(values = c("black", "red"), name="") + 
     theme_bw() +
     theme(axis.text.x=element_blank(),
-          axis.ticks.x=element_blank()) 
+          axis.ticks.x=element_blank()) + 
+    theme(legend.position = "bottom")
       
+
+ggsave("./coverage_fail_by_DPI.png", width = 4, height = 4)
 
 ```
 

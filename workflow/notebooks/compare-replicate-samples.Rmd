@@ -39,10 +39,10 @@ invisible(lapply(c(packages), library, character.only = TRUE))
 if (exists("snakemake")) {
   
   # Sample metadata
-  sample.metadata.data = snakemake@input[[3]]
+  sample.metadata.data = snakemake@input[[1]]
   
   # Variant calls from pysam, varscan, ivar, and lofreq
-  variant.calls.data = snakemake@input[[4]]
+  variant.calls.data = snakemake@input[[2]]
   
   
 } else {
@@ -109,6 +109,9 @@ replicate.filtered.df %>%
     facet_wrap(~CALLER) + 
     theme_bw()
 
+
+ggsave("filtered_replicate_comparison.png", width = 6, height = 6, dpi = 300)
+
 ```
 
 For the most part, the correlation between replicates is really good regardless of the variant calling approach. There are however some variants that are fairly high frequency missed by one replicate or the other. Could this be due to the filters that I'm using? To test this, I'll see what the correlation looks like without any filters. 
@@ -133,6 +136,8 @@ replicates.unfiltered.df %>%
     ylab("Repcliate 2") + 
     facet_wrap(~CALLER) + 
     theme_bw()
+
+ggsave("unfiltered_replicate_comparison.png", width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -175,7 +180,7 @@ merged.variants.df = variant.df %>%
 
 Finally, we need to decide how to combine the variants from the various callers. Let's look at the Venn diagram of the callers after filtering and merging. 
 
-```{r Merged Caller UpSet, echo=T, fig.align='center', fig.width=6, fig.height=3}
+```{r Merged Caller UpSet, echo=T, fig.align='center', fig.width=8, fig.height=5}
 
 merged.variants.df %>% 
   select(Animal, DPI, SNP, CALLER) %>% 
@@ -191,6 +196,8 @@ merged.variants.df %>%
         order.by = "freq",
         empty.intersections = "on",
         text.scale = 1.5)
+
+ggsave("merged_caller_upset_plot.png", width = 6, height = 3, dpi = 300)
 
 ```
 
@@ -250,7 +257,7 @@ Although I've keep all samples in the variant data frame up to this point, it's 
 
 I'll start by summarizing the variance between replicates in a given sample. One super trivial approach that weights higher frequency alleles is to take the average difference in frequency between replicates. I'll do that below. 
 
-```{r Average AF Difference v. RNA Copies, fig.align='center', fig.width=3, fig.height=3}
+```{r Average AF Difference v. RNA Copies, fig.align='center', fig.width=6, fig.height=6}
 
 variant.df %>%
   # Remove the isolate that isn't sequenced in duplicate. 
@@ -278,6 +285,7 @@ variant.df %>%
     theme_bw() + 
     theme(legend.position = "none")
   
+ggsave("replicate_comparison_v_RNA_Copies.png", width = 6, height = 6, dpi = 300)
 
 ```
 
