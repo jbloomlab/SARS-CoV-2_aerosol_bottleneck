@@ -611,8 +611,47 @@ filtered.bottleneck.df %>%
 ggsave("./filtered_bottleneck.png", width = 8, height = 4)
 
 ```
+It's probably not the case that the two new conditions are really comparable to the first three since the experimental design was different. I'll break these onto separate plots. 
 
-Generally, the relationship holds, which is pretty interesting. Let's see what the 'TV' plots look like. These will give us some sense of whether we got rid of variants that could be false-positives. 
+```{r Alternative Plot Filtered Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+
+# Add the conditions to the data frame and plot 
+filtered.bottleneck.plot.df = filtered.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) 
+  
+filtered.bottleneck.plot.df %>% 
+  filter(Condition %in% c("aerosol transmission", "direct transmission")) %>% 
+  mutate(Pair = factor(Pair, levels = c("19D1-19AC1", "19D2-19AC1", "19D1-19AC2", "19D2-19AC2", "19D1-19DC1", "19D2-19DC1", "19D1-19DC2", "19D2-19DC2"))) %>%
+  ggplot(aes(x = Pair, y = bottleneck, col = Condition)) + 
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point() + 
+    xlab("Donor-Contact Pair") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
+    theme(legend.position = "bottom")
+
+ggsave("./filtered__a_v_d_bottleneck.png", width = 6, height = 4)
+
+  
+filtered.bottleneck.plot.df %>% 
+  filter(!Condition %in% c("aerosol transmission", "direct transmission")) %>% 
+  ggplot(aes(x = Pair, y = bottleneck, col = Condition)) + 
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point() + 
+    xlab("Donor-Contact Pair") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
+    theme(legend.position = "bottom")
+
+ggsave("./filtered__impactor_bottleneck.png", width = 8, height = 4)
+
+```
+
+Let's see what the 'TV' plots look like. These will give us some sense of whether we got rid of variants that could be false-positives. 
 
 ```{r Filtered TV Plots, echo=T, fig.align='center', fig.width=8, fig.height=8}
 
@@ -742,6 +781,109 @@ ggsave("./filtered_shared_variant_plot.png", width = 25, height = 20)
 
 ```
 
+## Masking Possible Artifacts
+
+There are still some variants that defy our expectations even after we applied the more stringent filters described above. In particular, these are `A15489T`, `C15494G`, `A22422G`, and `T24091C`. It's not clear why these variants are exhibiting the behavior that they are. I will investigate this in the future, but first, let's see what happens to the bottleneck calculation when we mask these variants. 
+
+```{r Calculate Masked Bottleneck, echo=TRUE}
+
+masked.snps = c('A15489T', 'C15494G', 'A22422G', 'T24091C')
+masked.merged.df = filtered.merged.df %>% 
+  filter(!SNP %in% masked.snps)
+
+masked.bottleneck.df = data.frame()
+masked.tv.df = data.frame()
+for (i in 1:nrow(combinations.df)) {
+  
+  # Donor information
+  donor = combinations.df[i,]$donor
+  donor.dpc = combinations.df[i,]$donor_dpc
+  donor.df = masked.merged.df %>% 
+    filter(Animal == donor, 
+           DPC == donor.dpc) %>% 
+    mutate(donor = AF) %>% 
+    select(SNP, donor)
+    
+  # Contact information
+  contact = combinations.df[i,]$contact
+  contact.dpc = combinations.df[i,]$contact_dpc
+  contact.df = masked.merged.df %>% 
+    filter(Animal == contact, 
+           DPC == contact.dpc) %>% 
+    mutate(contact = AF) %>% 
+    select(SNP, contact)
+  
+  # Combine into single data frame
+  transmission.pair.df = full_join(donor.df, contact.df, by = "SNP") %>% 
+    mutate(donor = if_else(is.na(donor), 0, donor),
+           contact = if_else(is.na(contact), 0, contact)) 
+  
+  # Calculate the bottleneck
+  bottleneck = approx.transmission.bottleneck(transmission.pair.df,
+                                 freq.threshold = min.freq,
+                                 Nb.min = 1,
+                                 Nb.max = 500,
+                                 Nb.increment = 1,
+                                 confidence.interval = .95)
+  
+  # Make a new bottleneck row
+  bottleneck.row = list(lower_ci = bottleneck[1], 
+                        upper_ci = bottleneck[3],
+                        bottleneck = bottleneck[2],
+                        experiment = combinations.df[i,]$Experiment,
+                        donor = donor,
+                        contact = contact)
+
+  # Append the row to the bottleneck data frame 
+  masked.bottleneck.df = rbind(masked.bottleneck.df, bottleneck.row)
+  
+  # Append frequencies from joined pairs for the TV plots
+  transmission.pair.df$Experiment  = combinations.df[i,]$Experiment
+  transmission.pair.df$Pair  = paste(donor, contact, sep = "-")
+  masked.tv.df = rbind(masked.tv.df, transmission.pair.df)
+
+}
+
+```
+
+
+```{r Plot Masked Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+
+# Add the conditions to the data frame and plot 
+masked.bottleneck.plot.df = masked.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) 
+  
+masked.bottleneck.plot.df %>% 
+  filter(Condition %in% c("aerosol transmission", "direct transmission")) %>% 
+  mutate(Pair = factor(Pair, levels = c("19D1-19AC1", "19D2-19AC1", "19D1-19AC2", "19D2-19AC2", "19D1-19DC1", "19D2-19DC1", "19D1-19DC2", "19D2-19DC2"))) %>%
+  ggplot(aes(x = Pair, y = bottleneck, col = Condition)) + 
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point() + 
+    xlab("Donor-Contact Pair") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
+    theme(legend.position = "bottom")
+
+ggsave("./masked_a_v_d_bottleneck.png", width = 6, height = 4)
+
+  
+masked.bottleneck.plot.df %>% 
+  filter(!Condition %in% c("aerosol transmission", "direct transmission")) %>% 
+  ggplot(aes(x = Pair, y = bottleneck, col = Condition)) + 
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_point() + 
+    xlab("Donor-Contact Pair") + 
+    ylab("Bottleneck Size") + 
+    theme_bw()  +
+    theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
+    theme(legend.position = "bottom")
+
+ggsave("./masked_impactor_bottleneck.png", width = 8, height = 4)
+
+```
 ## Bottleneck Variability
 
 It's clear that with stringent filters, the estimate for the bottleneck is pretty variable. It's hard to say whether this is due to some natural feature of the system, the fact that not all donor-contact pairs are true donor-contact pairs, or false-positive variants. 
@@ -957,6 +1099,6 @@ ggsave("./filtered_stock_bottleneck.png", width = 8, height = 4)
 
 ## Conclusion
 
-Generally, the conclusion of this notebook so far is that the bottleneck is narrow, but it still influenced by possible false positive variants. It's not totally clear what the impact of particle size is on the bottleneck. Generally it seems like the bottleneck isn't strong influenced. 
+Generally, the conclusion of this notebook so far is that the bottleneck is narrow, but it still influenced by possible false positive variants. It's not totally clear what the impact of particle size is on the bottleneck. Generally it seems like the bottleneck isn't strongly influenced, but might be restricted by the particle size.
 
 

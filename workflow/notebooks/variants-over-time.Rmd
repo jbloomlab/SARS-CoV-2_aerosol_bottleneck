@@ -1,0 +1,322 @@
+---
+title: "6. Variants Over Time"
+author:
+    - "Will Hannon"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+  highlight: tango
+  number_sections: no
+  theme: default
+  toc: yes
+  toc_depth: 3
+  toc_float:
+    collapsed: no
+    smooth_scroll: yes
+---
+
+The goal of this notebook is to see what happens to transmitted variants over time. Is there any evidence of selection? How stable are variants over time? 
+
+```{r Setup, include=FALSE}
+require("knitr")
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r Required Packages, message=FALSE, warning=FALSE}
+
+## ==== Install Required Packages ==== ##
+
+## List of all packages needed
+packages = c("tidyverse", "data.table", "foreach")
+invisible(lapply(c(packages), library, character.only = TRUE))
+
+```
+
+```{r Inputs, echo=T}
+
+## ==== File paths input data ==== ##
+
+if (exists("snakemake")) {
+  
+  # Sample metadata
+  sample.metadata.data = snakemake@input[[1]]
+  
+  # Variant calls from pysam, varscan, ivar, and lofreq
+  variant.calls.data = snakemake@input[[2]]
+  
+  # Merged variant calls from the previous notebook 
+  merged.variant.calls.data = snakemake@input[[3]]
+  
+  # Primer BED
+  primer.bed.data = snakemake@input[[4]]
+
+} else {
+
+  # Sample metadata
+  sample.metadata.data = "../../config/samples.csv"
+  
+  # Variant calls from pysam, varscan, ivar, and lofreq
+  variant.calls.data = "../../results/variants/variants.csv"
+  
+  # Merged variant calls from the previous notebook 
+  merged.variant.calls.data = "../../results/variants/merged_variants.csv"
+  
+  # Primer BED
+  primer.bed.data = "../../results/reference/primers/primers.bed"
+  
+}
+
+```
+
+```{r Load Data, echo=TRUE, warning=FALSE}
+
+merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
+  # Fix the naming scheme of experiment 19 
+  mutate(Condition = case_when(
+    Experiment == 19 & Pair == 'aerosol' ~ 'aerosol transmission',
+    Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
+    TRUE ~ Condition
+  )) %>% 
+  # Standardize the pair names to contact and donor
+  mutate(Pair = case_when(
+    Pair == 'aerosol' ~ 'contact',
+    Pair == 'direct' ~ 'contact',
+    Pair == 'recipient' ~ 'contact',
+    TRUE ~ Pair
+  ))
+
+# Un-merged variant calls
+variant.df = read_csv(variant.calls.data, show_col_types = FALSE)
+
+# Primer positions
+primer.df = fread(primer.bed.data) %>% 
+  select(contig = V1,
+         start = V2, 
+         end = V3, 
+         name = V4, 
+         qual = V5, 
+         direction = V6)
+
+```
+
+I'll use the filters that we determine in the previous notebook.
+
+```{r Filter Variants, echo=TRUE}
+
+# Try some more stringent filters
+min.obsv = 100
+min.bias = .85
+min.freq = 0.03
+
+# Get the SNPs that are in primer stretches 
+snps.in.primers = merged.df %>% 
+  select(POS, SNP) %>% 
+  left_join(., select(primer.df, c(start, end)), by = character()) %>% 
+  mutate(in_primer = between(POS, start, end, incbounds = TRUE)) %>% 
+  filter(in_primer) %>% 
+  pull(SNP) %>% 
+  unique()
+  
+# Filter the merged data frame
+filtered.merged.df = merged.df %>% 
+  mutate(OBSV = ADR + ADF) %>% 
+  mutate(BIAS = pmax(ADR, ADF) / OBSV) %>% 
+  filter(
+    OBSV >= min.obsv,
+    BIAS <= min.bias,
+    AF >= min.freq,
+    !SNP %in% snps.in.primers
+  )
+
+```
+
+In addition to the filters that were used to create the `merged.df`, I've increased the allele frequency filter to >= `r min.freq * 100`% , I've added a strand-bias filter of <= `r min.bias * 100`% variants on a single strand, and I've increased the minimum number of variant reads to `r min.obsv`. 
+
+## Variant Stability
+
+```{r Format Variant Data, echo = T, warning=FALSE}
+
+# Get the amino acid annotations for each variant from Pysam
+amino_acid_annotations = variant.df %>% 
+  filter(CALLER == 'pysam') %>% 
+  select(POS, REF, ALT, POS_AA, REF_AA, ALT_AA, GENE) %>% 
+  mutate(SNP = paste(REF, POS, ALT, sep = "")) %>% 
+  select(!c(POS, REF, ALT)) %>% 
+  distinct()
+
+# Fixed in the isolate
+fixed.in.isolate = merged.df %>%  
+  filter(Animal == "stock",
+         AF >= .98) %>% 
+  pull(SNP)
+  
+# Get the unique experiment names for cross joining with stock variants
+faceting_columns = variant.df %>% 
+  select(Experiment, Animal) %>% 
+  filter(!is.na(Experiment)) %>% 
+  distinct()
+
+# Get all of the variants in the stock and expand by experiment (cross join)
+stock.variants = variant.df %>% 
+  filter(CALLER == 'pysam',
+         Animal == "stock") %>% 
+  mutate(DPC = -1,
+         DPI = 0,
+         Pair = "stock") %>% 
+  select(POS, REF, ALT, POS_AA, REF_AA, ALT_AA, GENE, Pair, Condition, DPC, DPI, AF) %>% 
+  left_join(., faceting_columns, by = character()) %>% 
+  mutate(SNP = paste(REF, POS, ALT, sep = ""),
+         Stock = T
+         ) 
+
+# Fix the fact that the same donor was used for aerosol and direct conditions
+ivc.cage.variants = filtered.merged.df %>% 
+  filter(Condition == "no impactor/IVC cage") 
+ivc.cage.variants.aerosol = ivc.cage.variants %>% 
+  mutate(Condition = "aerosol transmission")
+ivc.cage.variants.direct = ivc.cage.variants %>% 
+  mutate(Condition = "direct transmission")
+amended.merged.df = filtered.merged.df %>% 
+  filter(Condition != "no impactor/IVC cage") %>% 
+  bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
+  mutate(Condition = case_when(
+    Condition == "no impactor" ~ "none",
+    Condition == "5 um impactor" ~ "5 um",
+    Condition == "2.5 um impactor" ~ "2 um",
+    Condition == "aerosol transmission" ~ "aerosol",
+    Condition == "direct transmission" ~ "direct"
+  ))
+
+
+# Add back the stock variants and remove the fixed variants and annotate
+plotting.merged.df = amended.merged.df %>% 
+  filter(Animal != "stock") %>% 
+  left_join(., amino_acid_annotations, by = "SNP") %>% 
+  bind_rows(stock.variants) %>% 
+  filter(!SNP %in% fixed.in.isolate) %>% 
+  mutate(AA_Change = paste(GENE, ":", " ", REF_AA, POS_AA, ALT_AA, sep="")) %>% 
+  mutate(AA_Change = case_when(
+    is.na(GENE) ~ "intergenic", 
+    TRUE ~ AA_Change
+  )) %>% 
+  mutate(Mutation = paste(SNP, " (", AA_Change , ")")) 
+    
+```
+
+```{r Plotting Data by Cage, echo=T, warning=F}
+
+cages = plotting.merged.df %>% 
+  pull(Experiment) %>% 
+  unique()
+
+plots = foreach(i = 1:length(cages)) %do% {
+  
+  # Get the cage that we're plotting
+  cage = cages[i]
+    
+  # Only plot the SNPs for this cage that are present in more than one time point
+  plot.snps = plotting.merged.df %>% 
+    filter(Experiment == cage) %>% 
+    select(SNP, DPI, Pair) %>% 
+    distinct() %>%
+    group_by(SNP) %>% 
+    count() %>% 
+    filter(n > 1) %>% 
+    pull(SNP)
+  
+  # Get the names of the contact animal to exclude stock from these facets
+  contacts = plotting.merged.df %>% 
+    filter(Experiment == cage & Pair == "contact") %>% 
+    pull(Animal) %>% 
+    unique()
+
+  # Plot the variants over time
+  plt = plotting.merged.df %>% 
+    filter(Experiment == cage) %>% 
+    filter(SNP %in% plot.snps) %>% 
+    filter(!(Pair == "stock" & Animal %in% contacts)) %>% 
+    mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
+    ggplot(aes(x = DPI, y = AF, col = Pair, group = Grouping)) +
+      geom_point(size = 1.5) + 
+      geom_line() + 
+      facet_grid(rows = vars(Animal), cols = vars(reorder(Mutation, POS))) + 
+      xlab("Days Post Infection") + 
+      ylab("Allele Frequency") + 
+      ggtitle(paste("Experiment", cage)) + 
+      scale_color_manual(values = c("#bd0000", "#0013bd", "#bd00ba")) + 
+      scale_y_continuous(breaks = c(0, 0.5, 1)) + 
+      theme_bw() + 
+      theme(plot.title = element_text(hjust = 0.5)) +                                                               
+      theme(strip.text.x = element_text(size = 5)) + 
+      theme(legend.position = "bottom")
+  
+}
+
+```
+
+### No Impactor
+
+Let's look at the cages with no impactors. Are there any interesting patterns here? 
+
+```{r Cage 10.1, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
+
+suppressMessages(print(plots[[1]]))
+
+```
+
+```{r Cage 10.2, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
+
+suppressMessages(print(plots[[2]]))
+
+```
+
+### 5um Impactor
+
+Now let's look for the tighter aerosol size of 5um. 
+
+```{r Cage 10.3, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
+
+suppressMessages(print(plots[[3]]))
+
+```
+
+```{r Cage 10.4, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
+
+suppressMessages(print(plots[[4]]))
+
+```
+
+### 2.5um Impactor
+
+Now let's look for the tighter aerosol size of 5um. 
+
+
+```{r Cage 10.8, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
+
+suppressMessages(print(plots[[5]]))
+
+```
+
+```{r Cage 10.9, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
+
+suppressMessages(print(plots[[6]]))
+
+```
+
+### Direct v. Aerosol transmission
+
+Now let's compare direct transmission and aerosol transmission.
+
+```{r Cage 19, fig.align='center', fig.width=16, fig.height=6, message=FALSE}
+
+suppressMessages(print(plots[[7]]))
+
+```
+
+## Key Takeaways 
+
+There are several key takeaways from this notebook: 
+
+1. There is a mutation in the Spike multi-basic cleavage site (`S:R682L`) that is never transmitted, but it's high frequency in the stock and much lower frequency in the contact. 
+2. There is a mutation in Spike (`S:H655Y`) that exhibits behavior that's consistent with arising multiple times convergently. Similar to (`S:N74K`). 
+3. However, what's a little puzzling is that no mutations appear to fix over time. 
