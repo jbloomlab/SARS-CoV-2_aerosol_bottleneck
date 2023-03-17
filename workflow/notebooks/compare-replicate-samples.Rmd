@@ -15,7 +15,7 @@ output:
     smooth_scroll: yes
 ---
 
-In this notebook, I'll look at the correlation between replicate samples. I'll see if there are any obviously problematic samples. I'll see how TCID50 and Viral Copy Number effect this, and I'll combine the replicates into a final set of variants per condition.
+In this notebook, I'll look at the correlation between replicate samples. I'll see if there are any obviously problematic samples. I'll see how TCID50 and the number of Viral RNA Copies effect this. Finally, I'll combine the replicates and approaches into a final set of variants per condition.
 
 ```{r Setup, include=FALSE}
 require("knitr")
@@ -57,9 +57,17 @@ if (exists("snakemake")) {
 
 ```
 
+```{r Output Directory, echo=T}
+
+figures.dir = "../../results/figures/"
+
+merged.variants.data = "../../results/variants/merged_variants.csv"
+
+```
+
 ## Compare Replicates
 
-Let's see how the replicates compare with the heuristic filters that I determined in the previous notebook for each of the sets of variants. 
+Let's see how the replicates compare with the heuristic filters that I determined in the previous notebook for each of the sets of variants. These filters greatly reduced the discordance between the set of allele's called by the four different variant callers (`lofreq`, `iVar`, `Varscan`, and `Pysam`). 
 
 ```{r Load Variants, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -86,7 +94,7 @@ The filters that I'm using are a minimum allele frequency of `r min.freq`, a min
 replicate.filtered.df = variants.filtered.df %>%
   # Remove the isolate that isn't sequenced in duplicate. 
   filter(Run != "HL-2162") %>% 
-  # Unique run condition
+  # Create a unique run identifier
   mutate(Identifier = paste(Animal, DPI, sep="_"),
          Replicate = paste("Replicate", Replicate, sep="_")
          ) %>% 
@@ -94,7 +102,6 @@ replicate.filtered.df = variants.filtered.df %>%
   # Pivot wider on the replicate
   pivot_wider(names_from = Replicate, values_from = AF, values_fill = 0)  
     
-
 ```
 
 Let's see what this looks like for all variants, samples and callers at once. 
@@ -109,8 +116,7 @@ replicate.filtered.df %>%
     facet_wrap(~CALLER) + 
     theme_bw()
 
-
-ggsave("filtered_replicate_comparison.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "filtered_replicate_comparison.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -137,7 +143,7 @@ replicates.unfiltered.df %>%
     facet_wrap(~CALLER) + 
     theme_bw()
 
-ggsave("unfiltered_replicate_comparison.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "unfiltered_replicate_comparison.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -145,7 +151,7 @@ This fixes (for the most part) the high frequency variants that are missing betw
 
 One solution is to merge the replicates **without** filters, then use the depth, frequency, and observation filters on the merged data to remove possible artifacts. 
 
-To merge replicates, I'll take the allele frequency and depth measurements from the more highly covered replicate. 
+**To merge replicates, I'll take the allele frequency and depth measurements from the more highly covered replicate.**
 
 ```{r Merge Replicates, echo=T}
 
@@ -182,7 +188,7 @@ Finally, we need to decide how to combine the variants from the various callers.
 
 ```{r Merged Caller UpSet, echo=T, fig.align='center', fig.width=8, fig.height=5}
 
-merged.variants.df %>% 
+merged.upset = merged.variants.df %>% 
   select(Animal, DPI, SNP, CALLER) %>% 
   mutate(SNP_ID = paste(Animal, DPI, SNP, sep = "-")) %>% 
   select(SNP_ID, CALLER) %>% 
@@ -197,11 +203,17 @@ merged.variants.df %>%
         empty.intersections = "on",
         text.scale = 1.5)
 
-ggsave("merged_caller_upset_plot.png", width = 6, height = 3, dpi = 300)
+```
+
+```{r Save Merged Upset, echo=FALSE, message=F}
+
+png(file=paste(figures.dir, "merged_caller_upset_plot.png", sep=""), width=8, height=5, units="in", res = 300)
+merged.upset
+dev.off()
 
 ```
 
-To choose a final set of variants, I'm going to select the variants called by two or more callers (if one of those callers included the `pysam` approach). Then, I'm going to get the quantitative metrics from `pysam`. 
+To choose a final set of variants, I'm going to select the **variants called by two or more callers (if one of those callers included the `Pysam` approach)**. Then, I'm going to get the **quantitative metrics (Frequency, Depth, and Base Quality) from `Pysam`**. 
 
 ```{r Combine Callers, echo=T}
 
@@ -253,7 +265,7 @@ write_csv(filtered.merged.variants.df, "../../results/variants/merged_variants.c
 
 ## Problematic samples
 
-Although I've keep all samples in the variant data frame up to this point, it's important to know if any individual samples might be problematic - i.e. due to low coverage. One way to check this is to look at how much the variants called between replicates deviate from one another. I'll investigate this below, highlighting any samples to look out for in the future. 
+Although I've keep all samples in the variant data frame up to this point, it's important to know if any individual samples might be problematic - i.e. due to low coverage or viral copy number. One way to check this is to look at how much the variants called between replicates deviate from one another in frequency. I'll investigate this below, highlighting any samples to look out for in the future. 
 
 I'll start by summarizing the variance between replicates in a given sample. One super trivial approach that weights higher frequency alleles is to take the average difference in frequency between replicates. I'll do that below. 
 
@@ -285,9 +297,58 @@ variant.df %>%
     theme_bw() + 
     theme(legend.position = "none")
   
-ggsave("replicate_comparison_v_RNA_Copies.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "replicate_comparison_v_RNA_Copies.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
+It's interesting to note that the concordance between replicates (mean difference in allele frequency) correlates pretty will with the RNA copy (Ct?). Let's investigate some of these samples more closely to see what the variants look like. 
 
+```{r Low Concordance Histogram, echo=T, fig.align='center', fig.width=6, fig.height=3}
+
+mean.df.difference = replicate.filtered.df %>% 
+  mutate(Identifier = paste(Identifier, "-DPI", sep = "")) %>% 
+  # Calculate the mean abs. difference between replicates
+  mutate(Delta_AF = abs(Replicate_1 - Replicate_2)) %>% 
+  group_by(Identifier) %>% 
+  summarize(Mean_Delta_AF = mean(Delta_AF)) %>% 
+  ungroup() %>% 
+  arrange(-Mean_Delta_AF)
+
+concordance.cutoff = 0.03
+
+mean.df.difference %>% 
+  ggplot(aes(x = Mean_Delta_AF)) + 
+    geom_histogram(bins = 40) + 
+    geom_vline(xintercept = concordance.cutoff, col = "darkred",  linetype = 2) +
+    xlab("Mean Allele Frequency Difference") + 
+    ylab("Sample Count") + 
+    theme_bw()
+
+low.concordance.samples = mean.df.difference %>% 
+  filter(Mean_Delta_AF >= concordance.cutoff) %>% 
+  pull(Identifier)
+
+
+ggsave(paste(figures.dir, "replicate_concordance_histogram.png", sep=""), width = 6, height = 3, dpi = 300)
+
+```
+
+I choose to look specifically at the lowest concordance samples, which are the `r length(low.concordance.samples)` samples that had a mean difference in allele frequency between replicates greater than or equal to `r concordance.cutoff`%. 
+
+```{r Lowest Concordance Samples, echo=T, fig.align='center', fig.width=10, fig.height=10}
+
+replicate.filtered.df %>% 
+  mutate(Identifier = paste(Identifier, "-DPI", sep = "")) %>% 
+  filter(Identifier %in% low.concordance.samples) %>% 
+  ggplot(aes(x = Replicate_1, y = Replicate_2, col = CALLER)) + 
+    geom_point() + 
+    xlab("Replicate 1") +
+    ylab("Repcliate 2") + 
+    facet_wrap(~Identifier) + 
+    theme_bw() + 
+    theme(legend.position = "bottom")
+
+ggsave(paste(figures.dir, "lowest_concordance_samples.png", sep=""), width = 10, height = 10, dpi = 300)
+
+```
 

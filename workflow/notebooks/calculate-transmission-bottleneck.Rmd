@@ -68,6 +68,12 @@ if (exists("snakemake")) {
 
 ```
 
+```{r Output Directory, echo=T}
+
+figures.dir = "../../results/figures/"
+
+```
+
 ```{r Load Data, echo=TRUE, warning=FALSE}
 
 merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
@@ -348,7 +354,7 @@ bottleneck.df %>%
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
     theme(legend.position = "none")
 
-ggsave("./unfiltered_bottleneck.png", width = 8, height = 4)
+ggsave(paste(figures.dir, "unfiltered_bottleneck.png", sep=""), width = 8, height = 4)
 
 ```
 
@@ -367,7 +373,7 @@ tv.df %>%
     facet_wrap(~Experiment) +
     theme_bw()
 
-ggsave("./unfiltered_tv_plot.png", width = 8, height = 8)
+ggsave(paste(figures.dir, "unfiltered_tv_plot.png", sep=""), width = 8, height = 8)
 
 ```
 
@@ -481,7 +487,7 @@ expanded.merged.df %>%
       theme(axis.ticks.length=unit(.25, "cm")) +
       guides(shape = FALSE)
 
-ggsave("./unfiltered_shared_variant_plot.png", width = 25, height = 20)
+ggsave(paste(figures.dir, "unfiltered_shared_variant_plot.png", sep=""), width = 25, height = 20)
 
 ```
 
@@ -608,7 +614,7 @@ filtered.bottleneck.df %>%
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
     theme(legend.position = "none")
 
-ggsave("./filtered_bottleneck.png", width = 8, height = 4)
+ggsave(paste(figures.dir, "filtered_bottleneck.png", sep=""), width = 8, height = 4)
 
 ```
 It's probably not the case that the two new conditions are really comparable to the first three since the experimental design was different. I'll break these onto separate plots. 
@@ -633,7 +639,7 @@ filtered.bottleneck.plot.df %>%
     theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
     theme(legend.position = "bottom")
 
-ggsave("./filtered__a_v_d_bottleneck.png", width = 6, height = 4)
+ggsave(paste(figures.dir, "filtered__a_v_d_bottleneck.png", sep=""), width = 6, height = 4)
 
   
 filtered.bottleneck.plot.df %>% 
@@ -647,7 +653,7 @@ filtered.bottleneck.plot.df %>%
     theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
     theme(legend.position = "bottom")
 
-ggsave("./filtered__impactor_bottleneck.png", width = 8, height = 4)
+ggsave(paste(figures.dir, "filtered__impactor_bottleneck.png", sep=""), width = 8, height = 4)
 
 ```
 
@@ -664,7 +670,7 @@ filtered.tv.df %>%
     facet_wrap(~Experiment) +
     theme_bw()
 
-ggsave("./filtered_tv_plot.png", width = 8, height = 8)
+ggsave(paste(figures.dir, "filtered_tv_plot.png", sep=""), width = 8, height = 8)
 
 ```
 
@@ -777,7 +783,7 @@ expanded.merged.df %>%
       guides(shape = FALSE)
 
 
-ggsave("./filtered_shared_variant_plot.png", width = 25, height = 20)
+ggsave(paste(figures.dir, "filtered_shared_variant_plot.png", sep=""), width = 25, height = 20)
 
 ```
 
@@ -867,7 +873,7 @@ masked.bottleneck.plot.df %>%
     theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
     theme(legend.position = "bottom")
 
-ggsave("./masked_a_v_d_bottleneck.png", width = 6, height = 4)
+ggsave(paste(figures.dir, "masked_a_v_d_bottleneck.png", sep=""), width = 6, height = 4)
 
   
 masked.bottleneck.plot.df %>% 
@@ -881,7 +887,7 @@ masked.bottleneck.plot.df %>%
     theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
     theme(legend.position = "bottom")
 
-ggsave("./masked_impactor_bottleneck.png", width = 8, height = 4)
+ggsave(paste(figures.dir, "masked_impactor_bottleneck.png", sep=""), width = 8, height = 4)
 
 ```
 ## Bottleneck Variability
@@ -991,7 +997,7 @@ stock.bottleneck.df %>%
     theme_bw()  +
     theme(legend.position = "bottom")
 
-ggsave("./stock_bottleneck.png", width = 8, height = 4)
+ggsave(paste("stock_bottleneck.png", sep=""), width = 8, height = 4)
 
 
 ```
@@ -1092,7 +1098,7 @@ stock.bottleneck.df %>%
     theme_bw()  +
     theme(legend.position = "bottom")
 
-ggsave("./filtered_stock_bottleneck.png", width = 8, height = 4)
+ggsave(paste(figures.dir, "filtered_stock_bottleneck.png", sep=""), width = 8, height = 4)
 
 
 ```
@@ -1101,4 +1107,16 @@ ggsave("./filtered_stock_bottleneck.png", width = 8, height = 4)
 
 Generally, the conclusion of this notebook so far is that the bottleneck is narrow, but it still influenced by possible false positive variants. It's not totally clear what the impact of particle size is on the bottleneck. Generally it seems like the bottleneck isn't strongly influenced, but might be restricted by the particle size.
 
+## Addendum
+
+False-positive variants seem to be an issue in the experiment so far. Is there a way to screen these out? If I can come up with a data-driven approach to do this, I'll add this somewhere in the previous notebook. 
+
+```{r Candidate False Positive Variants, echo = T}
+
+candidate.false.positives = c("A15489T", "C15494G", "A22422G", "T24091C")
+
+merged.df %>% 
+  mutate(FP = if_else(SNP %in% candidate.false.positives, T, F)) 
+
+```
 

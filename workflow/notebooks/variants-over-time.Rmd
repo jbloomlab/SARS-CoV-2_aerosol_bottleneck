@@ -68,6 +68,12 @@ if (exists("snakemake")) {
 
 ```
 
+```{r Output Directory, echo=T}
+
+figures.dir = "../../results/figures/"
+
+```
+
 ```{r Load Data, echo=TRUE, warning=FALSE}
 
 merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
@@ -261,12 +267,14 @@ Let's look at the cages with no impactors. Are there any interesting patterns he
 ```{r Cage 10.1, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
 
 suppressMessages(print(plots[[1]]))
+ggsave(paste(figures.dir, "cage_10.1_no_impactor.png", sep=""), width = 16, height = 4)
 
 ```
 
 ```{r Cage 10.2, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
 
 suppressMessages(print(plots[[2]]))
+ggsave(paste(figures.dir, "cage_10.2_no_impactor.png", sep=""), width = 16, height = 4)
 
 ```
 
@@ -277,29 +285,33 @@ Now let's look for the tighter aerosol size of 5um.
 ```{r Cage 10.3, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
 
 suppressMessages(print(plots[[3]]))
+ggsave(paste(figures.dir, "cage_10.3_5um_impactor.png", sep=""), width = 16, height = 4)
 
 ```
 
 ```{r Cage 10.4, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
 
 suppressMessages(print(plots[[4]]))
+ggsave(paste(figures.dir, "cage_10.4_5um_impactor.png", sep=""), width = 16, height = 4)
 
 ```
 
 ### 2.5um Impactor
 
-Now let's look for the tighter aerosol size of 5um. 
+Now let's look for the tighter aerosol size of 2.5um. 
 
 
 ```{r Cage 10.8, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
 
 suppressMessages(print(plots[[5]]))
+ggsave(paste(figures.dir, "cage_10.8_2.5um_impactor.png", sep=""), width = 16, height = 4)
 
 ```
 
 ```{r Cage 10.9, fig.align='center', fig.width=16, fig.height=4, message=FALSE}
 
 suppressMessages(print(plots[[6]]))
+ggsave(paste(figures.dir, "cage_10.9_2.5um_impactor.png", sep=""), width = 16, height = 4)
 
 ```
 
@@ -310,6 +322,7 @@ Now let's compare direct transmission and aerosol transmission.
 ```{r Cage 19, fig.align='center', fig.width=16, fig.height=6, message=FALSE}
 
 suppressMessages(print(plots[[7]]))
+ggsave(paste(figures.dir, "cage_19_aerosol_v_direct.png", sep=""), width = 16, height = 6)
 
 ```
 
@@ -317,6 +330,7 @@ suppressMessages(print(plots[[7]]))
 
 There are several key takeaways from this notebook: 
 
-1. There is a mutation in the Spike multi-basic cleavage site (`S:R682L`) that is never transmitted, but it's high frequency in the stock and much lower frequency in the contact. 
+1. There is a mutation in the Spike multibasic cleavage site (`S:R682L`) that is never transmitted, but it's high frequency in the stock and much lower frequency in the contact. 
 2. There is a mutation in Spike (`S:H655Y`) that exhibits behavior that's consistent with arising multiple times convergently. Similar to (`S:N74K`). 
 3. However, what's a little puzzling is that no mutations appear to fix over time. 
+

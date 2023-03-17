@@ -16,10 +16,10 @@ output:
 ---
 
 In this notebook, I'll take the merged and filtered variants and look for patterns that emerge. This includes:
-- How the frequency and distribution of variants changes conditions?
-- How the frequency and distribution of variants changes over time?
-- Are there shared variants between multiple samples?
-- How do the number of variants change by viral copy number? 
+  - How the frequency and distribution of variants changes conditions?
+  - How the frequency and distribution of variants changes over time?
+  - Are there shared variants between multiple samples or cages?
+  - How do the number of variants change by viral copy number? 
 
 ```{r Setup, include=FALSE}
 require("knitr")
@@ -31,7 +31,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## ==== Install Required Packages ==== ##
 
 ## List of all packages needed
-packages = c("tidyverse", "ggrepel")
+packages = c("tidyverse", "ggrepel", "data.table")
 invisible(lapply(c(packages), library, character.only = TRUE))
 
 ```
@@ -50,8 +50,10 @@ if (exists("snakemake")) {
   
   # Merged variant calls from the previous notebook 
   merged.variant.calls.data = snakemake@input[[3]]
+    
+  # Primer BED
+  primer.bed.data = snakemake@input[[4]]
 
-  
 } else {
 
   # Sample metadata
@@ -63,16 +65,45 @@ if (exists("snakemake")) {
   # Merged variant calls from the previous notebook 
   merged.variant.calls.data = "../../results/variants/merged_variants.csv"
   
+  # Primer BED
+  primer.bed.data = "../../results/reference/primers/primers.bed"
+  
 }
 
 ```
 
-```{r Load Data, echo=TRUE}
+```{r Output Directory, echo=T}
 
-merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE)
+figures.dir = "../../results/figures/"
 
 ```
 
+```{r Load Data, echo=T}
+
+merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
+  # Fix the naming scheme of experiment 19 
+  mutate(Condition = case_when(
+    Experiment == 19 & Pair == 'aerosol' ~ 'aerosol transmission',
+    Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
+    TRUE ~ Condition
+  )) %>% 
+  # Standardize the pair names to contact and donor
+  mutate(Pair = case_when(
+    Pair == 'aerosol' ~ 'contact',
+    Pair == 'direct' ~ 'contact',
+    Pair == 'recipient' ~ 'contact',
+    TRUE ~ Pair
+  ))
+
+# Primer positions
+primer.df = fread(primer.bed.data) %>% 
+  select(contig = V1,
+         start = V2, 
+         end = V3, 
+         name = V4, 
+         qual = V5, 
+         direction = V6)
+```
 
 ## Allele Frequency Distribution
 
@@ -83,9 +114,11 @@ Let's see what the distribution of allele frequencies are across all of our samp
 merged.df %>% 
   ggplot(aes(x = AF)) + 
     geom_histogram(bins = 30) +
-    theme_bw()
+    xlab("Allele Frequency") + 
+    ylab("Allele Count") + 
+    theme_bw(18)
 
-ggsave("frequency_distribution.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "frequency_distribution.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -100,7 +133,7 @@ fixed.isolate.variants = merged.df %>%
 
 ```
 
-In total, there are `r length(fixed.isolate.variants)` fixed in the stock that was used to innoculate the donors. 
+In total, there are `r length(fixed.isolate.variants)` fixed in the stock that was used to inoculate the donors. 
 
 ```{r Frequency Distribution no Fixed, echo=T, fig.align='center', fig.width=6, fig.height=6}
 
@@ -108,9 +141,11 @@ merged.df %>%
   filter(!SNP %in% fixed.isolate.variants) %>% 
   ggplot(aes(x = AF)) + 
     geom_histogram(bins = 30) +
-    theme_bw()
+    xlab("Allele Frequency") + 
+    ylab("Allele Count") + 
+    theme_bw(18)
 
-ggsave("frequency_distribution_no_fixed_isolate_SNPs.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "frequency_distribution_no_fixed_isolate_SNPs.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -119,9 +154,7 @@ We can see that there are still some fixed variants. There are likely variants t
 ```{r Frequency Distribution Donor v. Recip, echo=T, fig.align='center', fig.width=12, fig.height=6}
 
 merged.df %>% 
-  # Fix the recipient/contact naming difference
-  mutate(Pair = if_else(Pair == "recipient", "contact", Pair)) %>% 
-  filter(Pair %in% c("donor", "contact")) %>% 
+  filter(!is.na(Pair)) %>% 
   filter(!SNP %in% fixed.isolate.variants) %>% 
   ggplot(aes(x = AF, fill = factor(Pair, levels = c("donor", "contact")))) + 
     geom_histogram(bins = 30) +
@@ -132,7 +165,7 @@ merged.df %>%
     theme_bw(18) + 
     theme(legend.position = "bottom")
 
-ggsave("frequency_distribution_by_pair.png", width = 12, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "frequency_distribution_by_pair.png", sep=""), width = 12, height = 6, dpi = 300)
 
 ```
 
@@ -153,7 +186,7 @@ merged.df %>%
     theme_bw(18) + 
     theme(legend.position = "bottom") 
 
-ggsave("frequency_distribution_by_time.png", width = 18, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "frequency_distribution_by_time.png", sep=""), width = 18, height = 6, dpi = 300)
 
 ```
 
@@ -178,11 +211,11 @@ merged.df %>%
     ggtitle("SNPs vs. RNA Copies") +
     xlab("RNA Copies") + 
     ylab("Allele Count") + 
-    theme_bw()+ 
+    theme_bw(18)+ 
     theme(legend.position = "none",
           plot.title = element_text(hjust = 0.5))
     
-ggsave("variants_v_RNA_Copies.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "variants_v_RNA_Copies.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -201,11 +234,11 @@ merged.df %>%
     ggtitle("SNPs vs.TCID50") +
     xlab("TCID50") + 
     ylab("Allele Count") + 
-    theme_bw()+ 
+    theme_bw(18)+ 
     theme(legend.position = "none",
           plot.title = element_text(hjust = 0.5))
     
-ggsave("variants_v_TCID50.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "variants_v_TCID50.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -230,9 +263,9 @@ merged.df %>%
     xlab("Number of Samples") +
     ylab("Number of Alleles") +
     scale_x_continuous(limits = c(0, number.of.conditions)) + 
-    theme_bw()
+    theme_bw(18)
 
-ggsave("variants_v_num_samples.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "variants_v_num_samples.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
@@ -257,19 +290,29 @@ merged.df %>%
     xlab("Number of Samples") +
     ylab("Number of Alleles") +
     scale_x_continuous(limits = c(0, number.of.conditions)) + 
-    theme_bw()
+    theme_bw(18)
 
-ggsave("variants_v_num_samples_no_isolate.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "variants_v_num_samples_no_isolate.png", sep=""), width = 6, height = 6, dpi = 300)
 
 ```
 
-This certainly improves the distribution. The question is whether the remaining variants are shared across experiments. This could indicate some kind of contamination or false variant that requires more stringency in the variant calling. 
+This certainly improves the distribution. The issue with filtering out variants that are present in the isolate is that although many of these could be real, the same things that lead to false-positives in multiple samples will likely also affect the variants called in the isolate. 
+
+## Possible False Positives
+
+The key indication of a possible false-positive variant is that it's present in more than one cage. If a variant is present in more than one animal, that could be the results of transmission. If a variant is present in more than one cage, there are three possible options: 
+
+1. **It's a real variant** present in the stock that was used to inoculate the donor animals. 
+2. **It's a real variant** that occurred multiple times due to selection.
+3. **It's a false variant** that's a recurrent artifact.
+
+Below, I'll try to isolate the artifacts and determine what's special about these variants. If there are unique features of these possible false-positives, we can apply filters that remove these artifacts. 
 
 ```{r Shared Variants Across Experiments, echo = T, warning = F, fig.align='center', fig.width=6, fig.height=6}
 
 merged.df %>% 
   filter(Animal != "stock",
-         !SNP %in% isolate.variants
+         !SNP %in% fixed.isolate.variants
          ) %>% 
   select(SNP, Experiment) %>% 
   distinct() %>% 
@@ -279,38 +322,121 @@ merged.df %>%
     geom_histogram(bins = 30) + 
     xlab("Number of Experiments") +
     ylab("Number of Alleles") +
-    theme_bw()
+    theme_bw(18)
 
-ggsave("variants_v_num_experiments.png", width = 6, height = 6, dpi = 300)
+ggsave(paste(figures.dir, "variants_v_cages.png", sep = ""), width = 6, height = 6, dpi = 300)
 
 ```
 
-Even accounting for the variants that were detected in the isolates, there are a handful of variants present in multiple experiments. Let's see what these variants look like. 
+Although the vast number of variants are unique to a single cage, there are many that are present in multiple *if not all cages*. As a note, I'm not including the variants that are fixed in the isolate. These are variants we expect to be present in all cages unless there is a reversion or some other mutation at this position. 
 
-```{r SNPs in many Experiments, echo = T}
+```{r Variants in Multiple Cages, echo=T}
 
-snps.in.multiple.experiments = merged.df %>% 
+# Get the SNPs that arose in more than one cage
+multi.cage.variants = merged.df %>% 
   filter(Animal != "stock",
-         !SNP %in% isolate.variants
+         !SNP %in% fixed.isolate.variants
          ) %>% 
   select(SNP, Experiment) %>% 
   distinct() %>% 
   group_by(SNP) %>% 
   count() %>% 
-  filter(n >= 2) %>% 
-  pull(SNP)
+  filter(n > 1) %>% 
+  pull(SNP) 
+
+# Get the SNPs that are in primer stretches 
+snps.in.primers = merged.df %>% 
+  select(POS, SNP) %>% 
+  left_join(., select(primer.df, c(start, end)), by = character()) %>% 
+  mutate(in_primer = between(POS, start, end, incbounds = TRUE)) %>% 
+  filter(in_primer) %>% 
+  pull(SNP) %>% 
+  unique()
+
+# Annotate the merged variants with signs of artifacts
+artifact.investigation.df = merged.df %>% 
+  filter(!SNP %in% fixed.isolate.variants) %>% 
+  mutate(Multiple_Cages = if_else(SNP %in% multi.cage.variants, T, F),
+         OBSV = ADR + ADF,
+         BIAS = pmax(ADR, ADF) / OBSV,
+         In_Primer = if_else(SNP %in% snps.in.primers, T, F))
 
 ```
 
-Accounting for the variants in the isolate, there are `r length(snps.in.multiple.experiments)` variants in more than one experiment.
+There are `r length(multi.cage.variants)` present in multiple cages. Note that some of these will be real variants as per the examples highlighted above. Despite that, I'd guess that the majority of these variants will be false-positives. 
 
-```{r Load raw variants, echo=T}
+```{r Strand-Bias, echo = T, fig.align='center', fig.width=6, fig.height=6}
 
-variant.df = read_csv(variant.calls.data, show_col_types = FALSE) %>% 
-    mutate(SNP = paste(REF, POS, ALT, sep = "")) 
+mean.bais = artifact.investigation.df %>% 
+  group_by(SNP, Multiple_Cages) %>% 
+  summarize(BIAS = mean(BIAS)) %>% 
+  ungroup() %>% 
+  group_by(Multiple_Cages) %>% 
+  summarize(BIAS = mean(BIAS))
+
+artifact.investigation.df %>% 
+  group_by(SNP, Multiple_Cages) %>% 
+  summarize(BIAS = mean(BIAS)) %>% 
+  ggplot(aes(x = Multiple_Cages, y = BIAS)) + 
+    geom_jitter() + 
+    geom_errorbar(data = mean.bais, aes(ymin = BIAS, ymax = BIAS), col = 'red') +
+    ylab("Stand-Bias") + 
+    xlab("Detected In Multiple Cages") + 
+    theme_bw(18)
+
+ggsave(paste(figures.dir, "strand_bias_shared_variants.png", sep = ""), width = 6, height = 6, dpi = 300)
 
 ```
 
-Some of these are possibly in the stock but missing due to filters. Going forward I'll keep in mind that there are still some recurrent variants and I'll test more stringent filters when calculating the bottleneck. 
- 
+There is certainly a higher than average strand-bias in the variants that are shared between multiple cages. Therefore, applying a conservative stand-bias filter would probably help remove false-positives. 
+
+```{r Observations, echo = T, fig.align='center', fig.width=6, fig.height=6}
+
+mean.OBSV = artifact.investigation.df%>% 
+  group_by(SNP, Multiple_Cages) %>% 
+  summarize(OBSV = mean(OBSV)) %>% 
+  ungroup() %>% 
+  group_by(Multiple_Cages) %>% 
+  summarize(OBSV = mean(OBSV))
+
+artifact.investigation.df %>% 
+  group_by(SNP, Multiple_Cages) %>% 
+  summarize(OBSV = mean(OBSV)) %>%  
+  ggplot(aes(x = Multiple_Cages, y = OBSV)) + 
+    geom_jitter() + 
+    geom_errorbar(data = mean.OBSV, aes(ymin = OBSV, ymax = OBSV), col = 'red') +
+    ylab("Number of Variant Reads") + 
+    xlab("Detected In Multiple Cages") + 
+    theme_bw(18)
+
+ggsave(paste(figures.dir, "obsv_count_shared_variants.png", sep = ""), width = 6, height = 6, dpi = 300)
+
+```
+
+I think that this is slightly less interesting, but the average number of reads with a variant allele is lower in the possible false positives. 
+
+```{r Primer Overlaps, echo=T, fig.align='center', fig.width=6, fig.height=6}
+
+artifact.investigation.df %>% 
+  select(Multiple_Cages, In_Primer, SNP) %>% 
+  distinct() %>% 
+  group_by(Multiple_Cages, In_Primer) %>% 
+  count() %>% 
+  group_by(Multiple_Cages) %>% 
+  mutate(Prop = n / sum(n)) %>% 
+  ggplot(aes(x = Multiple_Cages, y = Prop, fill = In_Primer)) + 
+    geom_bar(position = position_stack(), stat = "identity") + 
+    scale_fill_manual(values = c("black", "darkred"), name = "Overlaps Primer:") +
+    ylab("Proportion of SNPs") + 
+    xlab("Detected In Multiple Cages") + 
+    theme_bw(18) +
+    theme(legend.position = "bottom")
+
+ggsave(paste(figures.dir, "primer_overlap_shared_variants.png", sep = ""), width = 6, height = 6, dpi = 300)
+
+```
+
+Additionally, the many of the variants detected in multiple cages overlap with primer sequences. This is in spite of the primer trimming that I preformed in the pre-processing step. 
+
+*Of note, for plots that involve quantitative metrics, I'm using the average across all shared SNPs.* 
 

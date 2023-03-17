@@ -20,7 +20,7 @@ In this notebook, I compare the overlap in variants called by the four variant c
 - `iVar`
 - `Varscan`
 - `Lofreq`
-- `Pysam`
+- `Pysam` (A custom approach written in `Python`)
 
 I'll determine a set of variants to use in the downstream analysis. 
 
@@ -70,9 +70,15 @@ if (exists("snakemake")) {
 
 ```
 
+```{r Output Directory, echo=T}
+
+figures.dir = "../../results/figures/"
+
+```
+
 ## Variant Overlap 
 
-Below, I'll see what the overlap in variant calls are for the four approaches (`iVar`, `Varscan`, `Lofreq`, and `Pysam`). I did my best to standardize a minimal set of filters across every approach. To see these filters, look in the `config/snakemake.yml` file. 
+Below, I'll see what the overlap in variant calls are for the four approaches (`iVar`, `Varscan`, `Lofreq`, and `Pysam`). I did my best to standardize a minimal set of filters across every approach. To see these filters, look in the `./config/snakemake.yml` file at the root of the directory.
 
 ```{r Load Variants, echo=TRUE, warning=FALSE, message=FALSE}
 
@@ -83,9 +89,9 @@ variants.df = read_csv(variant.calls.data, show_col_types = FALSE) %>%
 
 The best way to visualize the overlap between variant callers is an `UpSet` plot. Below, I'll plot the overlap of variant callers without any extra filters applied.
 
-```{r Raw Variants Overlap, fig.align='center', fig.width=8, fig.height=5}
+```{r Raw Variants Overlap, message=F, fig.align='center', fig.width=8, fig.height=5}
 
-variants.df %>% 
+raw.upset = variants.df %>% 
   select(Run, SNP, CALLER) %>% 
   mutate(Identifier = paste(Run, SNP, sep = "-")) %>% 
   select(Identifier, CALLER) %>% 
@@ -100,13 +106,21 @@ variants.df %>%
         empty.intersections = "on",
         text.scale = 1.5)
 
-ggsave("raw_caller_upset_plot.png", width = 8, height = 5, dpi = 300)
+raw.upset
 
 ```
 
-A significant number of the total variants are shared between all callers even without filters applied. The two callers with the most unique variants are `lofreq` and `pysam`. It's not surprising that `pysam` has many unique variants given that there are no probability based filters or tests applied. It's a bit more surprising that `lofreq` has so many variants, however, it's known to be a very sensitive variant caller that can have many false positives. 
+```{r Save Raw Upset, echo=FALSE, message=F}
 
-Now, I'll apply some basic thresholds to see if I can improve the overlap. In theory, the greater overlap between approaches, the less change we're identifying false-positive variants. 
+png(file=paste(figures.dir, "raw_caller_upset_plot.png", sep=""), width=8, height=5, units="in", res = 300)
+raw.upset
+dev.off()
+
+```
+
+A significant number of the total variants are shared between all callers even without filters applied. The two callers with the most unique variants are `lofreq` and `pysam`. It's not surprising that `pysam` has many unique variants given that there are no probability based filters or tests applied. It's a bit more surprising that `lofreq` has so many variants, however, it's known to be a very sensitive variant caller that can have many false-positives. 
+
+Now, I'll apply some basic thresholds to see if I can improve the overlap. The greater overlap between approaches, the less likely it is that we've identified approach specific false-positive variants. 
 
 ```{r Variant Calling Thresholds, echo=T}
 
@@ -118,7 +132,7 @@ min.obsv = min.depth * min.freq
 
 Below, I'm using a minimum allele frequency of `r min.freq`, a minimum depth of `r min.depth`, a minimum number of variants reads of `r min.obsv` variants reads on a single strand.
 
-```{r Filtered Variant Overlap, fig.align='center', fig.width=8, fig.height=5}
+```{r Filtered Variant Overlap, message=F, fig.align='center', fig.width=8, fig.height=5}
 
 filtered.variants.df = variants.df %>% 
   filter(
@@ -127,7 +141,7 @@ filtered.variants.df = variants.df %>%
     ADF + ADR >= min.obsv
     )
 
-filtered.variants.df %>% 
+filtered.upset = filtered.variants.df %>% 
   select(Run, SNP, CALLER) %>% 
   mutate(Identifier = paste(Run, SNP, sep = "-")) %>% 
   select(Identifier, CALLER) %>% 
@@ -142,14 +156,20 @@ filtered.variants.df %>%
         empty.intersections = "on",
         text.scale = 1.5)
 
-ggsave("filtered_caller_upset_plot.png", width = 8, height = 5, dpi = 300)
+filtered.upset
 
 ```
 
-This drastically improves the overlap between the callers. Now, essentially, the only unique variants are called with `lofreq`. To come up with a set of variants to continue with, I'll take the variant alleles called by three or more variant callers. 
+```{r Save Filtered Upset, echo=FALSE, message=F}
 
-It's import to also see how this affects the correlation between replicates as well. I think a general approach that could would is to keep all of the variants that are present in `Pysam`, `Varscan`, and `iVar`. Since there are so many variants that are unique to `lofreq` and this variant caller is known to be sensitive, but prone to false positives, those variants should probably be ignored. 
+png(file=paste(figures.dir, "filtered_caller_upset_plot.png", sep=""), width=8, height=5, units="in", res = 300)
+filtered.upset
+dev.off()
 
-In the next notebook I'll see how the correlation between replicates look between callers anc combine the variants. 
+```
+
+This drastically improves the overlap between the callers. Now, essentially, the only unique variants are called with `lofreq`. 
+
+In the next notebook, I'll see how the correlation between replicates look between callers and combine the variants. 
 
 

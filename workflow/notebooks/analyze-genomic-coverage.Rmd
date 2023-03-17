@@ -15,7 +15,7 @@ output:
     smooth_scroll: yes
 ---
 
-In this notebook, I assess the read depth and coverage in all 117 samples. The goals of this notebook are to: 
+In this notebook, I'll assess the read depth and coverage in all 117 samples. The goals of this notebook are to: 
 
 1. See how trimming primers and masking mismatched primers changes coverage.
 2. Determine if there are samples with too little read coverage to call variants. 
@@ -66,6 +66,13 @@ if (exists("snakemake")) {
 
 ```
 
+```{r Output Directory, echo=T}
+
+figures.dir = "../../results/figures/"
+
+```
+
+
 ## Read Depth
 
 What's the general pattern of read depth across all samples before trimming primer sequences? We sequenced samples in two rounds. I'll break the samples into these separate rounds to see if there is anything different. 
@@ -100,14 +107,13 @@ untrimmed.depth.df %>%
     theme_bw(18) + 
     theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("./untrimmed_read_depth.png", width = 8, height = 6)
+ggsave(paste(figures.dir, "untrimmed_read_depth.png", sep=""), width = 8, height = 6)
 
 ```
 
 There are two main observations to be made here. (1) There is something strange going on for a couple samples in the first round of sequencing where a single amplicon appears to be much more highly covered than in other samples. (2) Depth is generally lower in the second round of sequencing and some regions around the middle of the genome are not covered in a handful of samples. This is to be expected, because many of these samples are from later time-points where viral copy number was low.
 
 How does trimming primer sequences change this depth pattern? I trimmed primer sequences (by soft clipping primers in reads) using [iVar](https://andersen-lab.github.io/ivar/html/manualpage.html). 
-
 
 ```{r Trimmed Depth, echo=T, fig.align='center', fig.width=8, fig.height=6}
 
@@ -125,11 +131,11 @@ trimmed.depth.df %>%
     theme_bw(18) + 
     theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("./trimmed_read_depth.png", width = 8, height = 6)
+ggsave(paste(figures.dir, "trimmed_read_depth.png", sep=""), width = 8, height = 6)
 
 ```
 
-Generally, the depth looks the same. There aren't any huge differences between the depth in primer trimmed and un-trimmed sequences. 
+Generally, the depth pattern looks the same. There aren't any huge differences between the depth in primer trimmed and un-trimmed sequences. 
 
 ## Read Coverage 
 
@@ -167,7 +173,7 @@ trimmed.coverage.df %>%
     theme_bw() + 
     theme(legend.position = "bottom")
 
-ggsave("./trimmed_coverage_v_TCID50.png", width = 4, height = 4)
+ggsave(paste(figures.dir, "trimmed_coverage_v_TCID50.png", sep=""), width = 4, height = 4)
 
 ```
 
@@ -185,9 +191,10 @@ trimmed.coverage.df %>%
     theme_bw()  + 
     theme(legend.position = "bottom")
 
-ggsave("./trimmed_coverage_v_RNA_Copies.png", width = 4, height = 4)
+ggsave(paste(figures.dir, "trimmed_coverage_v_RNA_Copies.png", sep=""), width = 4, height = 4)
 
 ```
+
 Both of these plots show effectively the same thing. There are about `r length(filter(trimmed.coverage.df, Coverage >= 80))` runs that would fail a coverage requirement of `r paste(min.frac, "% >= ", min.depth, "X coverage", sep="")`. What are these samples? 
 
 ```{r Coverage Fail by DPI, echo=TRUE, warning=FALSE, fig.align='center', fig.align='center', fig.width = 4, fig.height = 4}
@@ -205,7 +212,7 @@ trimmed.coverage.df %>%
     theme(legend.position = "bottom")
       
 
-ggsave("./coverage_fail_by_DPI.png", width = 4, height = 4)
+ggsave(paste(figures.dir, "coverage_fail_by_DPI.png", sep=""), width = 4, height = 4)
 
 ```
 
