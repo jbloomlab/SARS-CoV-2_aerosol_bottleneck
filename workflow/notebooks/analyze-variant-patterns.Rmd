@@ -109,7 +109,7 @@ primer.df = fread(primer.bed.data) %>%
 
 Let's see what the distribution of allele frequencies are across all of our samples. This includes the isolates and fixed variants. 
 
-```{r Frequency Distribution, echo=T, fig.align='center', fig.width=6, fig.height=6}
+```{r Frequency Distribution, fig.align='center', fig.width=6, fig.height=6}
 
 merged.df %>% 
   ggplot(aes(x = AF)) + 
@@ -135,7 +135,7 @@ fixed.isolate.variants = merged.df %>%
 
 In total, there are `r length(fixed.isolate.variants)` fixed in the stock that was used to inoculate the donors. 
 
-```{r Frequency Distribution no Fixed, echo=T, fig.align='center', fig.width=6, fig.height=6}
+```{r Frequency Distribution no Fixed, fig.align='center', fig.width=6, fig.height=6}
 
 merged.df %>% 
   filter(!SNP %in% fixed.isolate.variants) %>% 
@@ -151,7 +151,7 @@ ggsave(paste(figures.dir, "frequency_distribution_no_fixed_isolate_SNPs.png", se
 
 We can see that there are still some fixed variants. There are likely variants that fixed either during transmission or over the course of the infection. Let's get a better idea of this by plotting the distribution in frequency by condition, specifically, whether the alleles came from the donor or the recipient. 
 
-```{r Frequency Distribution Donor v. Recip, echo=T, fig.align='center', fig.width=12, fig.height=6}
+```{r Frequency Distribution Donor v. Recip, fig.align='center', fig.width=12, fig.height=6}
 
 merged.df %>% 
   filter(!is.na(Pair)) %>% 
@@ -171,7 +171,7 @@ ggsave(paste(figures.dir, "frequency_distribution_by_pair.png", sep=""), width =
 
 Indeed, it seems to be the case the variants are higher frequency, even fixed, after transmission occurs. This is pretty neat, but one caveat is that time after infection could play a role. In other words, do variants tend to fix over time, or is a bottleneck at transmission fixing the variants? 
 
-```{r Frequency Distribution Time, echo=T, fig.align='center', fig.width=18, fig.height=6}
+```{r Frequency Distribution Time, fig.align='center', fig.width=18, fig.height=6}
 
 merged.df %>% 
   filter(!SNP %in% fixed.isolate.variants,
@@ -196,7 +196,7 @@ Generally, there appear to be fewer low frequency variants relative to fixed var
 
 To be sure, let's check how the number of variants (excluding variants fixed in the stock) varies as a function of viral copy number and TCID50. 
 
-```{r Number of Variants v. Copies, echo=T, fig.align='center', fig.width=6, fig.height=6}
+```{r Number of Variants v. Copies, fig.align='center', fig.width=6, fig.height=6}
 
 merged.df %>% 
   filter(!SNP %in% fixed.isolate.variants,
@@ -219,7 +219,7 @@ ggsave(paste(figures.dir, "variants_v_RNA_Copies.png", sep=""), width = 6, heigh
 
 ```
 
-```{r Number of Variants v. TCID50, echo=T, fig.align='center', fig.width=6, fig.height=6}
+```{r Number of Variants v. TCID50, fig.align='center', fig.width=6, fig.height=6}
 
 merged.df %>% 
   filter(!SNP %in% fixed.isolate.variants,
@@ -250,7 +250,7 @@ In the next analysis, I'll take these variants and attempt to calculate the tran
 
 First, I'll plot the distribution of variants shared across samples. 
 
-```{r All Shared Variants, echo = T, warning = F, fig.align='center', fig.width=6, fig.height=6}
+```{r All Shared Variants, warning = F, fig.align='center', fig.width=6, fig.height=6}
 
 number.of.conditions = merged.df %>% select(Animal, DPI) %>% distinct() %>% nrow()
 
@@ -271,7 +271,7 @@ ggsave(paste(figures.dir, "variants_v_num_samples.png", sep=""), width = 6, heig
 
 As expected, although the majority of variants are unique, many are shared between samples. Some appear common to every sample. It's likely that a significant fraction of these are variants that were present in the isolate. Let's filter these out and see how the distribution changes. 
 
-```{r Isolate Dropped Shared Variants, echo = T, warning = F, fig.align='center', fig.width=6, fig.height=6}
+```{r Isolate Dropped Shared Variants, warning = F, fig.align='center', fig.width=6, fig.height=6}
 
 isolate.variants = merged.df %>% 
   filter(Animal == "stock") %>% 
@@ -308,7 +308,7 @@ The key indication of a possible false-positive variant is that it's present in 
 
 Below, I'll try to isolate the artifacts and determine what's special about these variants. If there are unique features of these possible false-positives, we can apply filters that remove these artifacts. 
 
-```{r Shared Variants Across Experiments, echo = T, warning = F, fig.align='center', fig.width=6, fig.height=6}
+```{r Shared Variants Across Experiments, warning = F, fig.align='center', fig.width=6, fig.height=6}
 
 merged.df %>% 
   filter(Animal != "stock",
@@ -365,7 +365,7 @@ artifact.investigation.df = merged.df %>%
 
 There are `r length(multi.cage.variants)` present in multiple cages. Note that some of these will be real variants as per the examples highlighted above. Despite that, I'd guess that the majority of these variants will be false-positives. 
 
-```{r Strand-Bias, echo = T, fig.align='center', fig.width=6, fig.height=6}
+```{r Strand-Bias, fig.align='center', fig.width=6, fig.height=6}
 
 mean.bais = artifact.investigation.df %>% 
   group_by(SNP, Multiple_Cages) %>% 
@@ -390,7 +390,7 @@ ggsave(paste(figures.dir, "strand_bias_shared_variants.png", sep = ""), width = 
 
 There is certainly a higher than average strand-bias in the variants that are shared between multiple cages. Therefore, applying a conservative stand-bias filter would probably help remove false-positives. 
 
-```{r Observations, echo = T, fig.align='center', fig.width=6, fig.height=6}
+```{r Observations, fig.align='center', fig.width=6, fig.height=6}
 
 mean.OBSV = artifact.investigation.df%>% 
   group_by(SNP, Multiple_Cages) %>% 
@@ -415,7 +415,7 @@ ggsave(paste(figures.dir, "obsv_count_shared_variants.png", sep = ""), width = 6
 
 I think that this is slightly less interesting, but the average number of reads with a variant allele is lower in the possible false positives. 
 
-```{r Primer Overlaps, echo=T, fig.align='center', fig.width=6, fig.height=6}
+```{r Primer Overlaps, fig.align='center', fig.width=6, fig.height=6}
 
 artifact.investigation.df %>% 
   select(Multiple_Cages, In_Primer, SNP) %>% 

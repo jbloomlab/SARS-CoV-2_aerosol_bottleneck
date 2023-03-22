@@ -186,7 +186,7 @@ merged.variants.df = variant.df %>%
 
 Finally, we need to decide how to combine the variants from the various callers. Let's look at the Venn diagram of the callers after filtering and merging. 
 
-```{r Merged Caller UpSet, echo=T, fig.align='center', fig.width=8, fig.height=5}
+```{r Merged Caller UpSet, fig.align='center', fig.width=8, fig.height=5}
 
 merged.upset = merged.variants.df %>% 
   select(Animal, DPI, SNP, CALLER) %>% 
@@ -257,7 +257,7 @@ These filters and merges leave us with a final set of `r nrow(filtered.merged.va
 
 Let's write these out to a file. 
 
-```{r Write out Variants}
+```{r Write out Variants, echo=T}
 
 write_csv(filtered.merged.variants.df, "../../results/variants/merged_variants.csv")
 
@@ -303,7 +303,7 @@ ggsave(paste(figures.dir, "replicate_comparison_v_RNA_Copies.png", sep=""), widt
 
 It's interesting to note that the concordance between replicates (mean difference in allele frequency) correlates pretty will with the RNA copy (Ct?). Let's investigate some of these samples more closely to see what the variants look like. 
 
-```{r Low Concordance Histogram, echo=T, fig.align='center', fig.width=6, fig.height=3}
+```{r Low Concordance Histogram, fig.align='center', fig.width=6, fig.height=3}
 
 mean.df.difference = replicate.filtered.df %>% 
   mutate(Identifier = paste(Identifier, "-DPI", sep = "")) %>% 
@@ -335,7 +335,7 @@ ggsave(paste(figures.dir, "replicate_concordance_histogram.png", sep=""), width 
 
 I choose to look specifically at the lowest concordance samples, which are the `r length(low.concordance.samples)` samples that had a mean difference in allele frequency between replicates greater than or equal to `r concordance.cutoff`%. 
 
-```{r Lowest Concordance Samples, echo=T, fig.align='center', fig.width=10, fig.height=10}
+```{r Lowest Concordance Samples, fig.align='center', fig.width=10, fig.height=10}
 
 replicate.filtered.df %>% 
   mutate(Identifier = paste(Identifier, "-DPI", sep = "")) %>% 

@@ -201,7 +201,7 @@ I'll use the merged variants from multiple replicates and variant callers to cal
 
 First, I'll get all of the pairwise comparisons between conditions in each cage (`Experiment`).
 
-```{r Donor Contact Pairs, echo=T}
+```{r Donor Contact Pairs}
 
 # Get the donor contact pairs for each experiment
 combinations.df = merged.df %>% 
@@ -315,7 +315,7 @@ for (i in 1:nrow(combinations.df)) {
 
 Let's see how the bottlenecks summarized for each condition. Below, I'm plotting the bottleneck size for each pairwise comparison as a point. I'm plotting the mean of those comparisons as a black circle. The error bars represent the **minimum lower bound of a 95% CI and the maximum upper bound of a 95% CI for the comparisons being summarized**. These error bars are certainly too conservative. One question is *what is an appropriate way to combine animals from the same cage?*
 
-```{r Plot Raw Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+```{r Plot Raw Bottlenecks, fig.align='center', fig.width=8, fig.height=4}
 
 # Condition order 
 condition.order = c("no impactor",
@@ -362,7 +362,7 @@ Generally, the trend isn't super clear other than direct transmission seems to h
 
 As I showed in the previous notebook, there are variants shared between cages that weren't detected in the isolate. These could be an indication of false-positives that could skew the bottleneck calculation towards higher than actual values. In fact, given the literature, the bottleneck is higher than I would naively expect. Below, I'll plot 'TV' plots comparing the frequency of variants between the donors and contacts. This will show us if there are any unusual patterns.
 
-```{r Raw TV Plots, echo=T, fig.align='center', fig.width=8, fig.height=8}
+```{r Raw TV Plots, fig.align='center', fig.width=8, fig.height=8}
 
 tv.df %>% 
   separate(Pair, c("donor_animal", "contact_animal"), sep = "-") %>% 
@@ -381,7 +381,7 @@ Indeed, there are some variants that see to be present at similar low frequencie
 
 Below, I'll try to figure out what these variants are and see if they're present outside of individual cages. I'll plot the animals on the x-axis, the allele frequency on the y-axis, I'll color an animal by whether it's a donor or contact, and I'll show the frequency of the variant in the isolate. 
 
-```{r Shared Variants, echo=T, fig.width=25, fig.height=20, fig.align="center"}
+```{r Shared Variants, fig.width=25, fig.height=20, fig.align="center"}
 
 # Get the amino acid annotations for each variant from Pysam
 amino_acid_annotations = variant.df %>% 
@@ -587,7 +587,7 @@ for (i in 1:nrow(combinations.df)) {
 
 Now, I'll plot the bottleneck to see how these filters effect our expectations. 
 
-```{r Plot Filtered Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+```{r Plot Filtered Bottlenecks, fig.align='center', fig.width=8, fig.height=4}
 
 # Calculate the mean bottleneck for each condition
 mean.filtered.bottleneck = filtered.bottleneck.df %>% 
@@ -619,7 +619,7 @@ ggsave(paste(figures.dir, "filtered_bottleneck.png", sep=""), width = 8, height 
 ```
 It's probably not the case that the two new conditions are really comparable to the first three since the experimental design was different. I'll break these onto separate plots. 
 
-```{r Alternative Plot Filtered Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+```{r Alternative Plot Filtered Bottlenecks, fig.align='center', fig.width=8, fig.height=4}
 
 # Add the conditions to the data frame and plot 
 filtered.bottleneck.plot.df = filtered.bottleneck.df %>% 
@@ -659,7 +659,7 @@ ggsave(paste(figures.dir, "filtered__impactor_bottleneck.png", sep=""), width = 
 
 Let's see what the 'TV' plots look like. These will give us some sense of whether we got rid of variants that could be false-positives. 
 
-```{r Filtered TV Plots, echo=T, fig.align='center', fig.width=8, fig.height=8}
+```{r Filtered TV Plots, fig.align='center', fig.width=8, fig.height=8}
 
 filtered.tv.df %>% 
   separate(Pair, c("donor_animal", "contact_animal"), sep = "-") %>% 
@@ -676,7 +676,7 @@ ggsave(paste(figures.dir, "filtered_tv_plot.png", sep=""), width = 8, height = 8
 
 Let's take a closer look at the shared variants that are left over.
 
-```{r Filtered Shared Variants, echo=T, fig.width=25, fig.height=20, fig.align="center"}
+```{r Filtered Shared Variants, fig.width=25, fig.height=20, fig.align="center"}
 
 # Get the amino acid annotations for each variant from Pysam
 amino_acid_annotations = variant.df %>% 
@@ -853,7 +853,7 @@ for (i in 1:nrow(combinations.df)) {
 ```
 
 
-```{r Plot Masked Bottlenecks, echo=T, fig.align='center', fig.width=8, fig.height=4}
+```{r Plot Masked Bottlenecks, fig.align='center', fig.width=8, fig.height=4}
 
 # Add the conditions to the data frame and plot 
 masked.bottleneck.plot.df = masked.bottleneck.df %>% 
@@ -984,7 +984,7 @@ for (i in 1:nrow(stock.comparison.df)) {
 
 Now, let's see what the bottleneck looks like between the stock and each donor animal
 
-```{r Plot Stock Bottleneck, echo=TRUE, fig.align='center', fig.width=8, fig.height=4}
+```{r Plot Stock Bottleneck, fig.align='center', fig.width=8, fig.height=4}
 
 # Add the conditions to the data frame and plot 
 stock.bottleneck.df %>% 
@@ -1004,7 +1004,7 @@ ggsave(paste("stock_bottleneck.png", sep=""), width = 8, height = 4)
 
 There is some variability in the bottleneck estimate, but less than I might have expected. Let's see if this improves when we use the filtered set of variants. 
 
-```{r Plot Filtered Stock Bottleneck, echo = T, warning=FALSE}
+```{r Plot Filtered Stock Bottleneck, warning=FALSE}
 
 # Make a data frame of isolate/contact pairs 
 stock.comparison.df = filtered.merged.df %>% 
@@ -1116,7 +1116,7 @@ False-positive variants seem to be an issue in the experiment so far. Is there a
 candidate.false.positives = c("A15489T", "C15494G", "A22422G", "T24091C")
 
 merged.df %>% 
-  mutate(FP = if_else(SNP %in% candidate.false.positives, T, F)) 
+  filter(SNP %in% candidate.false.positives)
 
 ```
 
