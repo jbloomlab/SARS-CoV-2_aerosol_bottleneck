@@ -222,7 +222,12 @@ combinations.df = merged.df %>%
   left_join(merged.df %>%
               select(Experiment, Animal) %>%
               distinct(),
-            by = c("contact" = "Animal"))
+            by = c("contact" = "Animal")) %>%
+  # Remove the pairs for experiment 19 where the replicates are mismatched 
+  mutate(donor_replicate = str_extract(donor, "\\d$"),
+         contact_replicate = str_extract(contact, "\\d$")) %>% 
+  filter(!(Experiment == 19 & (donor_replicate != contact_replicate))) %>% 
+  select(!c(donor_replicate, contact_replicate)) 
 
 ```
 
@@ -863,7 +868,7 @@ masked.bottleneck.plot.df = masked.bottleneck.df %>%
   
 masked.bottleneck.plot.df %>% 
   filter(Condition %in% c("aerosol transmission", "direct transmission")) %>% 
-  mutate(Pair = factor(Pair, levels = c("19D1-19AC1", "19D2-19AC1", "19D1-19AC2", "19D2-19AC2", "19D1-19DC1", "19D2-19DC1", "19D1-19DC2", "19D2-19DC2"))) %>%
+  mutate(Pair = factor(Pair, levels = c("19D1-19AC1", "19D2-19AC2", "19D1-19DC1", "19D2-19DC2"))) %>%
   ggplot(aes(x = Pair, y = bottleneck, col = Condition)) + 
     geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
     geom_point() + 
@@ -890,6 +895,7 @@ masked.bottleneck.plot.df %>%
 ggsave(paste(figures.dir, "masked_impactor_bottleneck.png", sep=""), width = 8, height = 4)
 
 ```
+
 ## Bottleneck Variability
 
 It's clear that with stringent filters, the estimate for the bottleneck is pretty variable. It's hard to say whether this is due to some natural feature of the system, the fact that not all donor-contact pairs are true donor-contact pairs, or false-positive variants. 
@@ -997,7 +1003,7 @@ stock.bottleneck.df %>%
     theme_bw()  +
     theme(legend.position = "bottom")
 
-ggsave(paste("stock_bottleneck.png", sep=""), width = 8, height = 4)
+ggsave(paste(figures.dir, "stock_bottleneck.png", sep=""), width = 8, height = 4)
 
 
 ```
@@ -1007,7 +1013,7 @@ There is some variability in the bottleneck estimate, but less than I might have
 ```{r Plot Filtered Stock Bottleneck, warning=FALSE}
 
 # Make a data frame of isolate/contact pairs 
-stock.comparison.df = filtered.merged.df %>% 
+stock.comparison.df = masked.merged.df %>% 
   filter(Pair == "donor") %>% 
   select(Experiment, contact = "Animal")  %>% 
   distinct() %>% 
@@ -1019,11 +1025,11 @@ for (i in 1:nrow(stock.comparison.df)) {
   donor = stock.comparison.df[i,]$donor
   contact = stock.comparison.df[i,]$contact
   # Get the earliest day for each condition
-  earliest.donor.dpc = filtered.merged.df %>% 
+  earliest.donor.dpc = masked.merged.df %>% 
     filter(Animal == donor) %>% 
     pull(DPC) %>% 
     min()
-  earliest.contact.dpc = filtered.merged.df %>% 
+  earliest.contact.dpc = masked.merged.df %>% 
     filter(Animal == contact) %>% 
     pull(DPC) %>% 
     min()
@@ -1041,7 +1047,7 @@ for (i in 1:nrow(stock.comparison.df)) {
   # Donor information
   donor = stock.comparison.df[i,]$donor
   donor.dpc = stock.comparison.df[i,]$donor_dpc
-  donor.df = filtered.merged.df %>% 
+  donor.df = masked.merged.df %>% 
     filter(Animal == donor, 
            DPC == donor.dpc) %>% 
     mutate(donor = AF) %>% 
@@ -1050,7 +1056,7 @@ for (i in 1:nrow(stock.comparison.df)) {
   # Contact information
   contact = stock.comparison.df[i,]$contact
   contact.dpc = stock.comparison.df[i,]$contact_dpc
-  contact.df = filtered.merged.df %>% 
+  contact.df = masked.merged.df %>% 
     filter(Animal == contact, 
            DPC == contact.dpc) %>% 
     mutate(contact = AF) %>% 
@@ -1116,7 +1122,11 @@ False-positive variants seem to be an issue in the experiment so far. Is there a
 candidate.false.positives = c("A15489T", "C15494G", "A22422G", "T24091C")
 
 merged.df %>% 
-  filter(SNP %in% candidate.false.positives)
+  filter(SNP %in% candidate.false.positives) %>% 
+  group_by(Sequencing_Round) %>% 
+  count() %>% 
+  kable(., caption = "Sequencing Round")
 
 ```
 
+Interestingly, these variants that have the appearance of false-positive variants are only found in the first round of sequencing. None are found in the second round. 
