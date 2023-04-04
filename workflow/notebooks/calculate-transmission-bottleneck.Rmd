@@ -478,7 +478,7 @@ expanded.merged.df %>%
     geom_vline(xintercept = 3.5, linetype = 2, col = "grey") + 
     geom_vline(xintercept = 4.5, linetype = 2, col = "grey") + 
 
-    xlab("Animal") +
+    xlab("Condition") +
     ylab("Allele Frequency") + 
     scale_color_manual(values = c("#bd0000", "#0013bd"), name = "") +
     theme_classic()  +
@@ -773,7 +773,7 @@ expanded.merged.df %>%
     geom_vline(xintercept = 2.5, linetype = 2, col = "grey") + 
     geom_vline(xintercept = 3.5, linetype = 2, col = "grey") + 
     geom_vline(xintercept = 4.5, linetype = 2, col = "grey") + 
-    xlab("Animal") +
+    xlab("Condition") +
     ylab("Allele Frequency") + 
     scale_color_manual(values = c("#bd0000", "#0013bd"), name = "") +
     theme_classic()  +
@@ -1139,7 +1139,7 @@ expanded.merged.df %>%
     geom_vline(xintercept = 2.5, linetype = 2, col = "grey") + 
     geom_vline(xintercept = 3.5, linetype = 2, col = "grey") + 
     geom_vline(xintercept = 4.5, linetype = 2, col = "grey") + 
-    xlab("Animal") +
+    xlab("Condition") +
     ylab("Allele Frequency") + 
     scale_color_manual(values = c("#bd0000", "#0013bd"), name = "") +
     theme_classic()  +

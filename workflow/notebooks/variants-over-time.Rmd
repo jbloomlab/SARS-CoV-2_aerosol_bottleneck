@@ -326,11 +326,56 @@ ggsave(paste(figures.dir, "cage_19_aerosol_v_direct.png", sep=""), width = 16, h
 
 ```
 
+## Summarize Variants Over Time
+
+Connect the stock to the donor and donor to the contact. Filter for things that are in stock, donor, and contact. 
+
+```{r Summarized Variants}
+
+snps.in.both.sequencing.rounds = merged.df %>% 
+  select(SNP, Sequencing_Round) %>% 
+  distinct() %>% 
+  group_by(SNP) %>% 
+  count() %>% 
+  rename(SeqRoundObsv = n) %>% 
+  filter(SeqRoundObsv > 1) %>% 
+  pull(SNP)
+
+# Only plot the SNPs for this cage that are present in more than one time point
+plot.snps = plotting.merged.df %>% 
+  filter(SNP %in% snps.in.both.sequencing.rounds) %>% 
+  select(SNP, Pair) %>% 
+  distinct() %>% 
+  mutate(Tally = 1) %>% 
+  pivot_wider(names_from = "Pair", values_from = "Tally", values_fill = 0) %>% 
+  filter((stock + donor + contact) >= 2) %>% 
+  pull(SNP)
+
+plotting.merged.df %>% 
+  filter(SNP %in% plot.snps) %>% 
+  mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
+  ggplot(aes(x = DPI, y = AF, col = Pair, group = Grouping)) +
+    geom_point(size = 1.5) + 
+    geom_line() + 
+    facet_wrap(~Mutation) + 
+    xlab("Days Post Infection") + 
+    ylab("Allele Frequency") + 
+    scale_color_manual(values = c("#bd0000", "#0013bd", "#bd00ba")) + 
+    scale_y_continuous(breaks = c(0, 0.5, 1)) + 
+    theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5)) +                                                               
+    theme(strip.text.x = element_text(size = 5)) + 
+    theme(legend.position = "bottom")
+  
+
+```
+
+
 ## Key Takeaways 
 
 There are several key takeaways from this notebook: 
 
-1. There is a mutation in the Spike multibasic cleavage site (`S:R682L`) that is never transmitted, but it's high frequency in the stock and much lower frequency in the contact. 
+1. There is a mutation in the Spike multi-basic cleavage site (`S:R682L`) that is never transmitted, but it's high frequency in the stock and much lower frequency in the contact. 
 2. There is a mutation in Spike (`S:H655Y`) that exhibits behavior that's consistent with arising multiple times convergently. Similar to (`S:N74K`). 
 3. However, what's a little puzzling is that no mutations appear to fix over time. 
 
