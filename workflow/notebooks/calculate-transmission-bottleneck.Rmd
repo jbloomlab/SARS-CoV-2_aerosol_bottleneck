@@ -344,20 +344,25 @@ mean.bottleneck = bottleneck.df %>%
             lower_ci = min(lower_ci),
             upper_ci = max(upper_ci))
 
+# Position of the mean bottleneck label
+text.y.position = max(bottleneck.df$bottleneck) + (.1 * max(bottleneck.df$bottleneck))
+
 # Add the conditions to the data frame and plot 
 bottleneck.df %>% 
   left_join(., conditions, by = c("contact" = "Animal")) %>% 
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>%  
   ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
-    geom_errorbar(data = mean.bottleneck, aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
-    geom_point(data = mean.bottleneck, shape = 1, size = 3, col = "black") + 
-    geom_jitter(width = 0.1) + 
+    # geom_errorbar(data = mean.bottleneck, aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
+    geom_text(data = mean.bottleneck, aes(x = Condition, y = text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    geom_point(data = mean.bottleneck, shape=1, size = 3.5, col = "black") + 
+    geom_jitter(width = 0.1, size = 1.5) + 
     xlab("") + 
     ylab("Bottleneck Size") + 
-    theme_bw()  +
+    theme_bw(16)  +
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(size = 10))
 
 ggsave(paste(figures.dir, "unfiltered_bottleneck.png", sep=""), width = 8, height = 4)
 
@@ -604,20 +609,25 @@ mean.filtered.bottleneck = filtered.bottleneck.df %>%
             lower_ci = min(lower_ci),
             upper_ci = max(upper_ci))
 
+
+# Position of the mean bottleneck label
+text.y.position = max(filtered.bottleneck.df$bottleneck) + (.1 * max(filtered.bottleneck.df$bottleneck))
+
 # Add the conditions to the data frame and plot 
 filtered.bottleneck.df %>% 
   left_join(., conditions, by = c("contact" = "Animal")) %>% 
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>%  
   ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
-    geom_errorbar(data = mean.filtered.bottleneck, aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
-    geom_point(data = mean.filtered.bottleneck, shape = 1, size = 3, col = "black") + 
-    geom_jitter(width = 0.1) + 
+    geom_text(data = mean.filtered.bottleneck, aes(x = Condition, y = text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    geom_point(data = mean.filtered.bottleneck, shape=1, size = 3.5, col = "black") + 
+    geom_jitter(width = 0.1, size = 1.5) + 
     xlab("") + 
     ylab("Bottleneck Size") + 
-    theme_bw()  +
+    theme_bw(16)  +
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(size = 10))
 
 ggsave(paste(figures.dir, "filtered_bottleneck.png", sep=""), width = 8, height = 4)
 
@@ -1162,7 +1172,7 @@ Now, I'll plot the bottleneck summarized into a single plot.
 ```{r Plot Summarized Multi Round Bottlenecks, fig.align='center', fig.width=8, fig.height=4}
 
 # Calculate the mean bottleneck for each condition
-mean.filtered.bottleneck = multi.round.bottleneck.df %>% 
+mean.multiround.bottleneck = multi.round.bottleneck.df %>% 
   left_join(., conditions, by = c("contact" = "Animal")) %>% 
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>% 
@@ -1171,22 +1181,94 @@ mean.filtered.bottleneck = multi.round.bottleneck.df %>%
             lower_ci = min(lower_ci),
             upper_ci = max(upper_ci))
 
+# Position of the mean bottleneck label
+text.y.position = max(multi.round.bottleneck.df$bottleneck) + (.1 * max(multi.round.bottleneck.df$bottleneck))
+
 # Add the conditions to the data frame and plot 
 multi.round.bottleneck.df %>% 
   left_join(., conditions, by = c("contact" = "Animal")) %>% 
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>%  
   ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
-    geom_errorbar(data = mean.filtered.bottleneck, aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
-    geom_point(data = mean.filtered.bottleneck, shape = 1, size = 3, col = "black") + 
-    geom_jitter(width = 0.1) + 
+    geom_text(data = mean.multiround.bottleneck, aes(x = Condition, y = text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    geom_point(data = mean.multiround.bottleneck, shape=1, size = 3.5, col = "black") + 
+    geom_jitter(width = 0.1, size = 1.5) + 
     xlab("") + 
     ylab("Bottleneck Size") + 
-    theme_bw(18)  +
+    theme_bw(16)  +
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(size = 10))
 
 ggsave(paste(figures.dir, "multi_round_only_summarized_bottleneck.png", sep=""), width = 8, height = 4)
+
+```
+
+Because these are separate experiments, let's split this into two separate plots. 
+
+```{r Separated Summary Plot, fig.align='center', fig.width=8, fig.height=4}
+
+# Get the experiments for each condition
+impactor.experiments = merged.df %>% 
+  select(Condition, Experiment) %>% 
+  filter(Condition %in% c('no impactor', '5 um impactor', '2.5 um impactor')) %>% 
+  pull(Experiment)
+
+aerosol.experiments = merged.df %>% 
+  select(Condition, Experiment) %>% 
+  filter(Condition %in% c('aerosol transmission', 'direct transmission')) %>% 
+  pull(Experiment)
+
+# Split the bottleneck data frame
+impactor.multi.round.bottleneck.df = multi.round.bottleneck.df %>% filter(experiment %in% impactor.experiments)
+aerosol.multi.round.bottleneck.df = multi.round.bottleneck.df %>% filter(experiment %in% aerosol.experiments)
+
+# Calculate the mean bottleneck for each condition
+mean.impactor.bottleneck = mean.multiround.bottleneck %>% 
+  filter(Condition %in% c('no impactor', '5 um impactor', '2.5 um impactor'))
+mean.aerosol.bottleneck = mean.multiround.bottleneck %>% 
+  filter(Condition %in% c('aerosol transmission', 'direct transmission'))
+
+# Position of the mean bottleneck label
+impactor.text.y.position = max(impactor.multi.round.bottleneck.df$bottleneck) + (.1 * max(impactor.multi.round.bottleneck.df$bottleneck))
+aerosol.text.y.position = max(aerosol.multi.round.bottleneck.df$bottleneck) + (.1 * max(aerosol.multi.round.bottleneck.df$bottleneck))
+
+# Add the conditions to the data frame and plot 
+impactor.multi.round.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) %>%  
+  ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
+    geom_text(data = mean.impactor.bottleneck, aes(x = Condition, y = impactor.text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    geom_point(data = mean.impactor.bottleneck, shape=1, size = 3.5, col = "black") + 
+    geom_jitter(width = 0.1, size = 1.5) + 
+    xlab("") + 
+    ylab("Bottleneck Size") + 
+    theme_bw(16)  +
+    # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(size = 10))
+
+ggsave(paste(figures.dir, "impactor_multi_round_only_summarized_bottleneck.png", sep=""), width = 6, height = 4)
+
+# Add the conditions to the data frame and plot 
+aerosol.multi.round.bottleneck.df %>% 
+  left_join(., conditions, by = c("contact" = "Animal")) %>% 
+  mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
+  mutate(Pair = paste(donor, contact, sep = "-")) %>%  
+  ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
+    geom_text(data = mean.aerosol.bottleneck, aes(x = Condition, y = aerosol.text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    geom_point(data = mean.aerosol.bottleneck, shape=1, size = 3.5, col = "black") + 
+    geom_jitter(width = 0.1, size = 1.5) + 
+    xlab("") + 
+    ylab("Bottleneck Size") + 
+    theme_bw(16)  +
+    # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
+    theme(legend.position = "none") +
+    theme(axis.text.x = element_text(size = 10))
+
+ggsave(paste(figures.dir, "aerosol_multi_round_only_summarized_bottleneck.png", sep=""), width = 3.5, height = 4)
+
 
 ```
 
