@@ -503,9 +503,9 @@ Below, I'm going to try some more stringent filters to remove possible false-pos
 ```{r Filter the Merged Variants, echo=T}
 
 # Try some more stringent filters
-min.obsv = 100
-min.bias = .85
-min.freq = 0.03
+min.obsv = 25
+min.bias = .9
+min.freq = 0.02
 
 # Get the SNPs that are in primer stretches 
 snps.in.primers = merged.df %>% 
@@ -1182,7 +1182,7 @@ multi.round.bottleneck.df %>%
     geom_jitter(width = 0.1) + 
     xlab("") + 
     ylab("Bottleneck Size") + 
-    theme_bw()  +
+    theme_bw(18)  +
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
     theme(legend.position = "none")
 
