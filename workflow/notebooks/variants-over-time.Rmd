@@ -328,11 +328,14 @@ ggsave(paste(figures.dir, "cage_19_aerosol_v_direct.png", sep=""), width = 16, h
 
 ## Summarize Variants Over Time
 
-Connect the stock to the donor and donor to the contact. Filter for things that are in stock, donor, and contact. 
+It is interesting to see what happens to specific variants over time. I'm going to use the variants that we identified in the filtered dataset (the variants used to calculate the bottleneck). This means that variants are present in more than one sequencing run, found at more than 2% AF, found with more an 25 runs with alternative alleles, and less then 90% strand bias. In addition, these variants are not found in primer sequences. 
+
+One addional thing I'll do is focus on variants that are found in more than one time point (in either the donor or the contact). These are the most interesting variants for observing patterns over time. 
 
 ```{r Summarized Variants, fig.align='center', fig.width=8, fig.height=6, message=FALSE}
 
-snps.in.both.sequencing.rounds = merged.df %>% 
+# Only plot the SNPs in both rounds of sequencing (same as bottlneck)
+snps.in.both.sequencing.rounds = filtered.merged.df %>% 
   select(SNP, Sequencing_Round) %>% 
   distinct() %>% 
   group_by(SNP) %>% 
@@ -341,32 +344,43 @@ snps.in.both.sequencing.rounds = merged.df %>%
   filter(SeqRoundObsv > 1) %>% 
   pull(SNP)
 
-# Only plot the SNPs for this cage that are present in more than one time point
+# Only plot the SNPs with more than one time point per animal 
+snps.in.multiple.timepoints = filtered.merged.df %>% 
+  select(SNP, Animal, DPI) %>% 
+  group_by(SNP, Animal) %>% 
+  count()  %>% 
+  rename(DPIObsv = n) %>% 
+  filter(DPIObsv > 1) %>% 
+  pull(SNP)
+  
+# Only plot the SNPs also found in the isolate (stock)
 plot.snps = plotting.merged.df %>% 
-  filter(SNP %in% snps.in.both.sequencing.rounds) %>% 
+  filter((SNP %in% snps.in.both.sequencing.rounds) & (SNP %in% snps.in.multiple.timepoints)) %>% 
   select(SNP, Pair) %>% 
   distinct() %>% 
   mutate(Tally = 1) %>% 
   pivot_wider(names_from = "Pair", values_from = "Tally", values_fill = 0) %>% 
-  filter((stock + donor + contact) >= 2) %>% 
+  filter(stock != 0) %>% 
   pull(SNP)
 
+# Plot the SNPs using the same filters as the bottleneck
 plotting.merged.df %>% 
   filter(SNP %in% plot.snps) %>% 
   mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
   ggplot(aes(x = DPI, y = AF, col = Pair, group = Grouping)) +
-    geom_point(size = 3, alpha = 0.5) + 
+    geom_point(size = 3.5, alpha = 0.5) + 
     geom_line(alpha = 0.5) + 
-    facet_wrap(~Mutation) + 
-    xlab("Days Post Infection") + 
-    ylab("Allele Frequency") + 
-    scale_color_manual(values = c("#bd0000", "#0013bd", "#bd00ba")) + 
+    facet_wrap(~fct_reorder(Mutation, POS, min)) +
+    xlab("Days After Inital Donor Infection") + 
+    ylab("Allele Frequency") +
+    scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                       breaks =c("stock", "donor", "contact")) + 
     scale_y_continuous(breaks = c(0, 0.5, 1)) + 
-    theme_bw(16) + 
-    theme(plot.title = element_text(hjust = 0.5)) +                                                               
+    theme_bw(18) + 
+    theme(plot.title = element_text(hjust = 0.5)) +                                                           
     theme(legend.position = "bottom")
   
-ggsave(paste(figures.dir, "variants-over-time-and-condition.png", sep=""), width = 8, height = 6)
+ggsave(paste(figures.dir, "variants-over-time-and-condition.png", sep=""), width = 12, height = 10)
 
 ```
 
