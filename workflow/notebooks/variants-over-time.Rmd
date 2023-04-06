@@ -330,11 +330,11 @@ ggsave(paste(figures.dir, "cage_19_aerosol_v_direct.png", sep=""), width = 16, h
 
 It is interesting to see what happens to specific variants over time. I'm going to use the variants that we identified in the filtered dataset (the variants used to calculate the bottleneck). This means that variants are present in more than one sequencing run, found at more than 2% AF, found with more an 25 runs with alternative alleles, and less then 90% strand bias. In addition, these variants are not found in primer sequences. 
 
-One addional thing I'll do is focus on variants that are found in more than one time point (in either the donor or the contact). These are the most interesting variants for observing patterns over time. 
+One additional thing I'll do is focus on variants that are found in more than one time point (in either the donor or the contact). These are the most interesting variants for observing patterns over time. 
 
 ```{r Summarized Variants, fig.align='center', fig.width=8, fig.height=6, message=FALSE}
 
-# Only plot the SNPs in both rounds of sequencing (same as bottlneck)
+# Only plot the SNPs in both rounds of sequencing (same as bottleneck)
 snps.in.both.sequencing.rounds = filtered.merged.df %>% 
   select(SNP, Sequencing_Round) %>% 
   distinct() %>% 
@@ -354,7 +354,7 @@ snps.in.multiple.timepoints = filtered.merged.df %>%
   pull(SNP)
   
 # Only plot the SNPs also found in the isolate (stock)
-plot.snps = plotting.merged.df %>% 
+snps.to.plot = plotting.merged.df %>% 
   filter((SNP %in% snps.in.both.sequencing.rounds) & (SNP %in% snps.in.multiple.timepoints)) %>% 
   select(SNP, Pair) %>% 
   distinct() %>% 
@@ -365,7 +365,7 @@ plot.snps = plotting.merged.df %>%
 
 # Plot the SNPs using the same filters as the bottleneck
 plotting.merged.df %>% 
-  filter(SNP %in% plot.snps) %>% 
+  filter(SNP %in% snps.to.plot) %>% 
   mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
   ggplot(aes(x = DPI, y = AF, col = Pair, group = Grouping)) +
     geom_point(size = 3.5, alpha = 0.5) + 
@@ -384,6 +384,87 @@ ggsave(paste(figures.dir, "variants-over-time-and-condition.png", sep=""), width
 
 ```
 
+I'll also make a version of this plot that show the other contact and donor samples even if a SNP wasn't observed in those animals. If a SNP wasn't observed, it's allele frequency is set to 0. 
+
+```{r Summarized Variants All SNPs , fig.align='center', fig.width=8, fig.height=6, message=FALSE}
+
+# Name of each facet title
+snp.info = plotting.merged.df %>% 
+  filter(SNP %in% snps.to.plot) %>% 
+  select(SNP, Mutation, POS) %>% 
+  distinct()
+
+# Get the Cartesian project of all snps to plot and conditions
+sample.snp.cartesian.product = amended.merged.df %>% 
+  filter(Animal != 'stock') %>% 
+  select(Animal, DPI, Pair) %>% 
+  distinct() %>%
+  merge(data.frame(SNP = snps.to.plot), by = NULL)
+
+# Format the plotting data frame, adding in the unobserved SNPs as AF = 0
+plotting.merged.df %>% 
+  filter(SNP %in% snps.to.plot) %>% 
+  select(Animal, Pair, DPI, SNP, AF) %>% 
+  full_join(., sample.snp.cartesian.product) %>% 
+  mutate(AF = if_else(is.na(AF), 0, AF)) %>% 
+  distinct() %>% 
+  left_join(., snp.info) %>% 
+  mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
+  ggplot(aes(x = DPI, y = AF, col = Pair, group = Grouping)) +
+    geom_point(size = 3.5, alpha = 0.5) + 
+    geom_line(alpha = 0.5) + 
+    facet_wrap(~fct_reorder(Mutation, POS, min)) +
+    xlab("Days After Inital Donor Infection") + 
+    ylab("Allele Frequency") +
+    scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                       breaks =c("stock", "donor", "contact")) + 
+    scale_y_continuous(breaks = c(0, 0.5, 1)) + 
+    theme_bw(18) + 
+    theme(plot.title = element_text(hjust = 0.5)) +                                                           
+    theme(legend.position = "bottom")
+  
+ggsave(paste(figures.dir, "variants-over-time-and-condition-all-snps.png", sep=""), width = 12, height = 10)
+
+```
+
+```{r Summarized Variants All SNPs , fig.align='center', fig.width=20, fig.height=5, message=FALSE}
+
+# Get the Cartesian project of all snps to plot and conditions
+sample.snp.cartesian.product = amended.merged.df %>% 
+  filter(Animal != 'stock') %>% 
+  select(Animal, DPI, Pair, Experiment) %>% 
+  distinct() %>%
+  merge(data.frame(SNP = snps.to.plot), by = NULL)
+
+# Format the plotting data frame, adding in the unobserved SNPs as AF = 0
+plotting.merged.df %>% 
+  filter(SNP %in% snps.to.plot) %>% 
+  select(Animal, Pair, Experiment, DPI, SNP, AF) %>% 
+  full_join(., sample.snp.cartesian.product) %>% 
+  mutate(AF = if_else(is.na(AF), 0, AF),
+         Experimental_Condition = if_else(Experiment == 19.0, "Aerosol v. Direct", "Impactor")
+         ) %>% 
+  distinct() %>% 
+  left_join(., snp.info) %>% 
+  mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
+  ggplot(aes(x = DPI, y = AF, col = Pair, group = Grouping)) +
+    geom_point(size = 3.5, alpha = 0.5) + 
+    geom_line(alpha = 0.5) + 
+    facet_grid(cols = vars(fct_reorder(Mutation, POS, min)), rows = vars(Experimental_Condition)) +
+    xlab("Days After Inital Donor Infection") + 
+    ylab("Allele Frequency") +
+    scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                       breaks =c("stock", "donor", "contact")) + 
+    scale_y_continuous(breaks = c(0, 0.5, 1)) + 
+    scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10)) + 
+    theme_bw(18) + 
+    theme(plot.title = element_text(hjust = 0.5)) +                                                           
+    theme(legend.position = "bottom") +
+    theme(strip.text.x = element_text(size = 12))
+  
+ggsave(paste(figures.dir, "split-variants-over-time-and-condition-all-snps.png", sep=""), width = 22, height = 6)
+
+```
 
 ## Key Takeaways 
 

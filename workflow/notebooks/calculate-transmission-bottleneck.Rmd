@@ -1239,7 +1239,7 @@ impactor.multi.round.bottleneck.df %>%
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>%  
   ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
-    geom_text(data = mean.impactor.bottleneck, aes(x = Condition, y = impactor.text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    # geom_text(data = mean.impactor.bottleneck, aes(x = Condition, y = impactor.text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
     geom_point(data = mean.impactor.bottleneck, shape=1, size = 3.5, col = "black") + 
     geom_jitter(width = 0.1, size = 1.5) + 
     xlab("") + 
@@ -1257,7 +1257,7 @@ aerosol.multi.round.bottleneck.df %>%
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>%  
   ggplot(aes(x = Condition, y = bottleneck, col = Condition)) + 
-    geom_text(data = mean.aerosol.bottleneck, aes(x = Condition, y = aerosol.text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
+    # geom_text(data = mean.aerosol.bottleneck, aes(x = Condition, y = aerosol.text.y.position, label = round(bottleneck, 2)), size = 4.5, col = "black") + 
     geom_point(data = mean.aerosol.bottleneck, shape=1, size = 3.5, col = "black") + 
     geom_jitter(width = 0.1, size = 1.5) + 
     xlab("") + 
@@ -1265,7 +1265,7 @@ aerosol.multi.round.bottleneck.df %>%
     theme_bw(16)  +
     # theme(axis.text.x = element_text(angle = 35, hjust = 1))  + 
     theme(legend.position = "none") +
-    theme(axis.text.x = element_text(size = 10))
+    theme(axis.text.x = element_text(size = 8.5))
 
 ggsave(paste(figures.dir, "aerosol_multi_round_only_summarized_bottleneck.png", sep=""), width = 3.5, height = 4)
 
@@ -1276,9 +1276,10 @@ What are the actual bottleneck sizes for each condition?
 
 ```{r Bottleneck Sizes, echo = F}
 
-mean.filtered.bottleneck %>% 
+mean.multiround.bottleneck %>% 
   kable(., caption = "Average Botlteneck Sizes")
 
+write_csv(mean.multiround.bottleneck, "mean_bottleneck_sizes.csv")
 ```
 
 ## Bottleneck Variability
