@@ -15,7 +15,7 @@ output:
     smooth_scroll: yes
 ---
 
-The goal of this notebook is to calculate the transmission bottleneck for the different aerosol sizes. Each cage has 4 animal, 2 contacts and 2 donors. I'll calculate the bottleneck assuming each possible donor/contact pair. I'll also calculate the bottleneck from the inoculate to each donor animal. Depending on the results, I'll try more stringent filters on the variants to see if this impacts the overall bottleneck size. 
+The goal of this notebook is to calculate the transmission bottleneck for the different aerosol sizes. There are two experiments, one where different sizes of impactor were used between cages and one comparing direct contact vs. aerosol contact. In the impactor experiments, each cage has 4 animal, 2 contacts and 2 donors. In the direct contact vs. aerosol contact experiment, there was a single donor used in both aerosol and direct contact conditions. I'll calculate the bottleneck assuming each possible donor/contact pair. I'll also calculate the bottleneck from the inoculate to each donor animal. Depending on the results, I'll try more stringent filters on the variants to see if this impacts the overall bottleneck size. 
 
 ```{r Setup, include=FALSE}
 require("knitr")
@@ -368,9 +368,7 @@ ggsave(paste(figures.dir, "unfiltered_bottleneck.png", sep=""), width = 8, heigh
 
 ```
 
-Generally, the trend isn't super clear other than direct transmission seems to have a looser bottleneck than aerosol transmission. Also, aerosol transmission seems to have a tighter bottleneck than when an impactor is used. However, it's important to make sure that these results aren't being skewed by artifacts.
-
-As I showed in the previous notebook, there are variants shared between cages that weren't detected in the isolate. These could be an indication of false-positives that could skew the bottleneck calculation towards higher than actual values. In fact, given the literature, the bottleneck is higher than I would naively expect. Below, I'll plot 'TV' plots comparing the frequency of variants between the donors and contacts. This will show us if there are any unusual patterns.
+As I showed in the previous notebook, **there are variants shared between cages that weren't detected in the isolate**. These could be an indication of false-positives that could skew the bottleneck calculation towards higher than actual values. In fact, given the literature, the bottleneck is higher than I would naively expect. Below, I'll plot 'TV' plots comparing the frequency of variants between the donors and contacts. This will show us if there are any unusual patterns.
 
 ```{r Raw TV Plots, fig.align='center', fig.width=8, fig.height=8}
 
@@ -922,7 +920,7 @@ merged.df %>%
 
 ```
 
-This makes sense if these are some kind of sequencing related artifact or contamination. Experimentally, it might be possible to remove these by sequencing the isolate in duplicate. For now, let's see what happens if we filter out variants that are only in a single sequencing round. 
+This makes sense if these are some kind of sequencing related artifact or contamination. Let's see what happens if we filter out variants that are only in a single sequencing round. 
 
 ```{r Variants Per Sequencing Round, echo = T}
 
@@ -1038,7 +1036,7 @@ multi.round.bottleneck.plot.df %>%
     theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
     theme(legend.position = "bottom")
 
-ggsave(paste(figures.dir, "multi_round_only_a_v_d_bottleneck.png", sep=""), width = 6, height = 4)
+ggsave(paste(figures.dir, "supplemental_figure_aerosol_v_direct_bottleneck.png", sep=""), width = 6, height = 4)
 
 multi.round.bottleneck.plot.df %>% 
   filter(!Condition %in% c("aerosol transmission", "direct transmission")) %>% 
@@ -1051,7 +1049,7 @@ multi.round.bottleneck.plot.df %>%
     theme(axis.text.x = element_text(angle = 35, hjust = 1))  +
     theme(legend.position = "bottom")
 
-ggsave(paste(figures.dir, "multi_round_only_impactor_bottleneck.png", sep=""), width = 8, height = 4)
+ggsave(paste(figures.dir, "supplemental_figure_impactor_bottleneck.png", sep=""), width = 8, height = 4)
 
 
 ```
@@ -1249,7 +1247,7 @@ impactor.multi.round.bottleneck.df %>%
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(size = 10))
 
-ggsave(paste(figures.dir, "impactor_multi_round_only_summarized_bottleneck.png", sep=""), width = 6, height = 4)
+ggsave(paste(figures.dir, "figure_impactor_summarized_bottleneck.png", sep=""), width = 6, height = 4)
 
 # Add the conditions to the data frame and plot 
 aerosol.multi.round.bottleneck.df %>% 
@@ -1267,7 +1265,7 @@ aerosol.multi.round.bottleneck.df %>%
     theme(legend.position = "none") +
     theme(axis.text.x = element_text(size = 8.5))
 
-ggsave(paste(figures.dir, "aerosol_multi_round_only_summarized_bottleneck.png", sep=""), width = 3.5, height = 4)
+ggsave(paste(figures.dir, "supplemental_figure_aerosol_v_direct_summarized_bottleneck.png", sep=""), width = 3.5, height = 4)
 
 
 ```
@@ -1279,7 +1277,8 @@ What are the actual bottleneck sizes for each condition?
 mean.multiround.bottleneck %>% 
   kable(., caption = "Average Botlteneck Sizes")
 
-write_csv(mean.multiround.bottleneck, "mean_bottleneck_sizes.csv")
+write_csv(mean.multiround.bottleneck, paste(figures.dir, "supplemental_figure_mean_bottleneck_sizes.csv", sep=""))
+
 ```
 
 ## Bottleneck Variability
@@ -1382,8 +1381,7 @@ stock.bottleneck.df %>%
     theme_bw()  +
     theme(legend.position = "bottom")
 
-ggsave(paste(figures.dir, "filtered_stock_bottleneck.png", sep=""), width = 8, height = 4)
-
+ggsave(paste(figures.dir, "supplemental_figure_stock_bottleneck.png", sep=""), width = 8, height = 4)
 
 ```
 

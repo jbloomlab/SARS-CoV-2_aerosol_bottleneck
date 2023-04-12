@@ -466,6 +466,101 @@ ggsave(paste(figures.dir, "split-variants-over-time-and-condition-all-snps.png",
 
 ```
 
+Finally, I'll try a version where I split the variants over time based on the two experiments (Impactor and Aerosol v. Direct) and change the shape of the points based on the specific experimental condition (impactor size, aerosol, or direct).
+
+```{r Split Summarized Variants All SNPs , fig.align='center', fig.width=10, fig.height=5, message=FALSE}
+
+# Get the Cartesian project of all snps to plot and conditions
+sample.snp.cartesian.product = amended.merged.df %>% 
+  filter(Animal != 'stock') %>% 
+  select(Animal, DPI, Pair, Experiment, Condition) %>% 
+  distinct() %>%
+  merge(data.frame(SNP = snps.to.plot), by = NULL)
+
+
+# Format the plotting data frame, adding in the unobserved SNPs as AF = 0
+
+shapes = c(19, 17, 15, 23)
+names(shapes) = c("stock", "No Impactor", "2.5 um Impactor", "5 um Impactor")
+
+plotting.merged.df %>% 
+  filter(SNP %in% snps.to.plot) %>% 
+  select(Animal, Pair, Experiment, Condition, DPI, SNP, AF) %>% 
+  full_join(., sample.snp.cartesian.product) %>% 
+  mutate(AF = if_else(is.na(AF), 0, AF),
+         Experimental_Condition = if_else(Experiment == 19.0, "Aerosol v. Direct", "Impactor")
+         ) %>% 
+  distinct() %>% 
+  left_join(., snp.info) %>% 
+  mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
+  filter(Experimental_Condition == "Impactor") %>% 
+  mutate(Impactor = case_when(
+    Condition == "none" ~ "No Impactor",
+    Condition == "5 um" ~ "5 um Impactor",
+    Condition == "2 um" ~ "2.5 um Impactor",
+     Condition == "isolate stock" ~ "stock"
+  )) %>%  
+  ggplot(aes(x = DPI, y = AF, col = Pair, fill = Pair, group = Grouping, shape = Impactor)) +
+    geom_point(size = 3.5, alpha = 0.5) + 
+    geom_line(alpha = 0.5) + 
+    facet_wrap(~fct_reorder(Mutation, POS, min), nrow = 2) +
+    xlab("Days After Inital Donor Infection") + 
+    ylab("Allele Frequency") +
+    scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                       breaks =c("stock", "donor", "contact")) + 
+    scale_fill_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                     breaks =c("stock", "donor", "contact")) + 
+    scale_y_continuous(breaks = c(0, 0.5, 1)) + 
+    scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10)) + 
+    scale_shape_manual(values = shapes) + 
+    theme_bw(16) + 
+    theme(plot.title = element_text(hjust = 0.5)) +                                                           
+    theme(legend.position = "bottom") +
+    theme(strip.text.x = element_text(size = 12))
+  
+ggsave(paste(figures.dir, "figure_impactor_variants_over_time.png", sep=""), width = 12, height = 6)
+
+shapes = c(19, 17, 15)
+names(shapes) = c("stock", "Aerosol", "Direct")
+
+plotting.merged.df %>% 
+  filter(SNP %in% snps.to.plot) %>% 
+  select(Animal, Pair, Experiment, Condition, DPI, SNP, AF) %>% 
+  full_join(., sample.snp.cartesian.product) %>% 
+  mutate(AF = if_else(is.na(AF), 0, AF),
+         Experimental_Condition = if_else(Experiment == 19.0, "Aerosol v. Direct", "Impactor")
+         ) %>% 
+  distinct() %>% 
+  left_join(., snp.info) %>% 
+  mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
+  filter(Experimental_Condition == "Aerosol v. Direct") %>% 
+  mutate(Impactor = case_when(
+    Condition == "aerosol" ~ "Aerosol",
+    Condition == "direct" ~ "Direct",
+    Condition == "isolate stock" ~ "stock"
+  )) %>%  
+  ggplot(aes(x = DPI, y = AF, col = Pair, fill = Pair, group = Grouping, shape = Impactor)) +
+    geom_point(size = 3.5, alpha = 0.5) + 
+    geom_line(alpha = 0.5) + 
+    facet_wrap(~fct_reorder(Mutation, POS, min), nrow = 2) +
+    xlab("Days After Inital Donor Infection") + 
+    ylab("Allele Frequency") +
+    scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                       breaks =c("stock", "donor", "contact")) + 
+    scale_fill_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
+                     breaks =c("stock", "donor", "contact")) + 
+    scale_y_continuous(breaks = c(0, 0.5, 1)) + 
+    scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10)) + 
+    scale_shape_manual(values = shapes) + 
+    theme_bw(16) + 
+    theme(plot.title = element_text(hjust = 0.5)) +                                                           
+    theme(legend.position = "bottom") +
+    theme(strip.text.x = element_text(size = 12))
+  
+ggsave(paste(figures.dir, "figure_aerosol_v_direct_variants_over_time.png", sep=""), width = 12, height = 6)
+
+```
+
 ## Key Takeaways 
 
 There are several key takeaways from this notebook: 
