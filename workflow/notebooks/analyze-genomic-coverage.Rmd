@@ -223,16 +223,7 @@ Below is a supplemental figure for the paper that shows the depth for each sampl
 
 ```{r Supplemental Figure 1, fig.align='center', fig.width=12, fig.height=5}
 
-# Samples not included in the paper
-aerosol_direct_samples = sample.metadata.df %>% 
-  filter(Experiment %in% c(19)) %>% 
-  pull(Run) %>% 
-  unique()
-  
-
 trimmed.depth.df %>% 
-  # Remove the samples not included in the paper
-  filter(!Run %in% aerosol_direct_samples) %>% 
   ggplot(aes(x = POS, y = log(DP), group = Run)) +
     geom_line() + 
     xlab("Position") + 

@@ -358,16 +358,9 @@ Below is the figure that will be included in the paper. It's identical to the pl
 
 ```{r Supplemental Figure 3a, fig.align='center', fig.width=6, fig.height=6}
 
-# Samples not included in the paper
-aerosol_direct_samples = sample.metadata.df %>% 
-  filter(Experiment %in% c(19)) %>% 
-  pull(Run) %>% 
-  unique()
-
 replicates.unfiltered.df = variant.df %>%
   # Remove the isolate that isn't sequenced in duplicate. 
   filter(Run != "HL-2162") %>% 
-  filter(!Run %in% aerosol_direct_samples) %>% 
   # Unique run condition
   mutate(Identifier = paste(Animal, DPI, sep="_"),
          Replicate = paste("Replicate", Replicate, sep="_")
@@ -393,7 +386,6 @@ ggsave(paste(figures.dir, "supplemental-figre-3a.png", sep=""), width = 6, heigh
 variant.df %>%
   # Remove the isolate that isn't sequenced in duplicate. 
   filter(Run != "HL-2162") %>% 
-  filter(!Run %in% aerosol_direct_samples) %>% 
   # Pivot wider on the replicate
   pivot_wider(id_cols=c(POS, REF, ALT, SNP, CALLER, Animal,
                         Pair, Experiment, Condition, DPI, DPC,

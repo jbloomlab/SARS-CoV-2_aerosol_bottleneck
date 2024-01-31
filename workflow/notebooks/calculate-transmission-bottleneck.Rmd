@@ -77,16 +77,8 @@ figures.dir = "../../results/figures/"
 ```{r Load Data, echo=TRUE, warning=FALSE}
 
 merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
-  # Fix the naming scheme of experiment 19 
-  mutate(Condition = case_when(
-    Experiment == 19 & Pair == 'aerosol' ~ 'aerosol transmission',
-    Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
-    TRUE ~ Condition
-  )) %>% 
   # Standardize the pair names to contact and donor
   mutate(Pair = case_when(
-    Pair == 'aerosol' ~ 'contact',
-    Pair == 'direct' ~ 'contact',
     Pair == 'recipient' ~ 'contact',
     TRUE ~ Pair
   ))
@@ -221,6 +213,7 @@ combinations.df = merged.df %>%
               select(Experiment, Animal) %>%
               distinct(),
             by = c("contact" = "Animal")) %>%
+  
   # Remove the pairs for experiment 19 where the replicates are mismatched 
   mutate(donor_replicate = str_extract(donor, "\\d$"),
          contact_replicate = str_extract(contact, "\\d$")) %>% 
@@ -429,26 +422,19 @@ shortened.condition.order = c("none",
 # Fix the fact that the same donor was used for aerosol and direct conditions
 ivc.cage.variants = expanded.merged.df %>% 
   filter(Condition == "no impactor/IVC cage") 
-ivc.cage.variants.aerosol = ivc.cage.variants %>% 
-  mutate(Condition = "aerosol transmission")
-ivc.cage.variants.direct = ivc.cage.variants %>% 
-  mutate(Condition = "direct transmission")
 expanded.merged.df = expanded.merged.df %>% 
   filter(Condition != "no impactor/IVC cage") %>% 
   bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
   mutate(Condition = case_when(
     Condition == "no impactor" ~ "none",
     Condition == "5 um impactor" ~ "5 um",
-    Condition == "2.5 um impactor" ~ "2 um",
-    Condition == "aerosol transmission" ~ "aerosol",
-    Condition == "direct transmission" ~ "direct"
+    Condition == "2.5 um impactor" ~ "2 um"
   )) %>% 
   mutate(Condition = fct_relevel(as_factor(Condition), shortened.condition.order)) 
 
 # Plot the variants
 expanded.merged.df %>% 
   filter(Animal != "stock") %>% 
-  filter(!Condition %in% c("aerosol", "direct")) %>% 
   mutate(Pair = if_else(Pair == "contact", "recipient", "donor")) %>% 
   ggplot(aes(x = Condition, y = AF)) +
     geom_hline(data = isolate.variants, aes(yintercept = AF), col = "#bd00ba", size = 1, linetype = "dashed") +
@@ -483,9 +469,7 @@ Plot the bottleneck for each pair.
 
 condition.order = c("no impactor",
                     "5 um impactor",
-                    "2.5 um impactor",
-                    "aerosol transmission",
-                    "direct transmission")
+                    "2.5 um impactor")
 
 # Get the conditions for each contact animal
 conditions = merged.df %>% 
@@ -497,7 +481,6 @@ bottleneck.df %>%
   left_join(., conditions, by = c("contact" = "Animal")) %>% 
   mutate(Condition = fct_relevel(as_factor(Condition), condition.order)) %>% 
   mutate(Pair = paste(donor, contact, sep = "-")) %>% 
-  filter(!Condition %in% c("aerosol transmission", "direct transmission")) %>% 
   ggplot(aes(x = Pair, y = bottleneck, col = Condition)) + 
     geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, col = "black") +
     geom_point() + 
@@ -531,8 +514,7 @@ mean.bottleneck = bottleneck.df %>%
   group_by(Condition) %>% 
   summarize(bottleneck = mean(bottleneck),
             lower_ci = min(lower_ci),
-            upper_ci = max(upper_ci)) %>% 
-  filter(!Condition %in% c("aerosol transmission", "direct transmission"))
+            upper_ci = max(upper_ci)) 
 
 # Split the bottleneck data frame
 impactor.bottleneck.df = bottleneck.df %>% filter(experiment %in% impactor.experiments)

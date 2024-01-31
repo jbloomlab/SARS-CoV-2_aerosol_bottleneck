@@ -179,14 +179,7 @@ Below is the figure that will be included in the paper. It's identical to the pl
 
 ```{r Supplemental Figure 2, message=F, fig.align='center', fig.width=8, fig.height=5}
 
-# Samples not included in the paper
-aerosol_direct_samples = sample.metadata.df %>% 
-  filter(Experiment %in% c(19)) %>% 
-  pull(Run) %>% 
-  unique()
-
 filtered.variants.df = variants.df %>% 
-  filter(!Run %in% aerosol_direct_samples) %>% 
   filter(
     AF >= min.freq,
     DP >= min.depth,

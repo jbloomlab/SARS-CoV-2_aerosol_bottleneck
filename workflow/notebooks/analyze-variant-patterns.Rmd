@@ -81,16 +81,8 @@ figures.dir = "../../results/figures/"
 ```{r Load Data, echo=T}
 
 merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
-  # Fix the naming scheme of experiment 19 
-  mutate(Condition = case_when(
-    Experiment == 19 & Pair == 'aerosol' ~ 'aerosol transmission',
-    Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
-    TRUE ~ Condition
-  )) %>% 
   # Standardize the pair names to contact and donor
   mutate(Pair = case_when(
-    Pair == 'aerosol' ~ 'contact',
-    Pair == 'direct' ~ 'contact',
     Pair == 'recipient' ~ 'contact',
     TRUE ~ Pair
   ))
@@ -450,7 +442,6 @@ Below is the figure that will be included in the paper. It's identical to the pl
 merged.df %>% 
   filter(!is.na(Pair)) %>% 
   filter(!SNP %in% fixed.isolate.variants) %>% 
-  filter(Experiment != 19) %>% 
   mutate(Pair = if_else(Pair == 'contact', 'recipient', 'donor')) %>% 
   ggplot(aes(x = AF, fill = factor(Pair, levels = c("donor", "recipient")))) + 
     geom_histogram(bins = 30) +

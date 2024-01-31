@@ -77,16 +77,8 @@ figures.dir = "../../results/figures/"
 ```{r Load Data, echo=TRUE, warning=FALSE}
 
 merged.df = read_csv(merged.variant.calls.data, show_col_types = FALSE) %>% 
-  # Fix the naming scheme of experiment 19 
-  mutate(Condition = case_when(
-    Experiment == 19 & Pair == 'aerosol' ~ 'aerosol transmission',
-    Experiment == 19 & Pair == 'direct' ~ 'direct transmission',
-    TRUE ~ Condition
-  )) %>% 
   # Standardize the pair names to contact and donor
   mutate(Pair = case_when(
-    Pair == 'aerosol' ~ 'contact',
-    Pair == 'direct' ~ 'contact',
     Pair == 'recipient' ~ 'contact',
     TRUE ~ Pair
   ))
@@ -178,10 +170,7 @@ stock.variants = variant.df %>%
 # Fix the fact that the same donor was used for aerosol and direct conditions
 ivc.cage.variants = filtered.merged.df %>% 
   filter(Condition == "no impactor/IVC cage") 
-ivc.cage.variants.aerosol = ivc.cage.variants %>% 
-  mutate(Condition = "aerosol transmission")
-ivc.cage.variants.direct = ivc.cage.variants %>% 
-  mutate(Condition = "direct transmission")
+
 amended.merged.df = filtered.merged.df %>% 
   filter(Condition != "no impactor/IVC cage") %>% 
   bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
@@ -189,10 +178,7 @@ amended.merged.df = filtered.merged.df %>%
     Condition == "no impactor" ~ "none",
     Condition == "5 um impactor" ~ "5 um",
     Condition == "2.5 um impactor" ~ "2 um",
-    Condition == "aerosol transmission" ~ "aerosol",
-    Condition == "direct transmission" ~ "direct"
   ))
-
 
 # Add back the stock variants and remove the fixed variants and annotate
 plotting.merged.df = amended.merged.df %>% 
@@ -312,17 +298,6 @@ ggsave(paste(figures.dir, "cage_10.8_2.5um_impactor.png", sep=""), width = 16, h
 
 suppressMessages(print(plots[[6]]))
 ggsave(paste(figures.dir, "cage_10.9_2.5um_impactor.png", sep=""), width = 16, height = 4)
-
-```
-
-### Direct v. Aerosol transmission
-
-Now let's compare direct transmission and aerosol transmission.
-
-```{r Cage 19, fig.align='center', fig.width=16, fig.height=6, message=FALSE}
-
-suppressMessages(print(plots[[7]]))
-ggsave(paste(figures.dir, "cage_19_aerosol_v_direct.png", sep=""), width = 16, height = 6)
 
 ```
 
@@ -479,7 +454,6 @@ sample.snp.cartesian.product = amended.merged.df %>%
 
 
 # Format the plotting data frame, adding in the unobserved SNPs as AF = 0
-
 shapes = c(19, 17, 15, 23)
 names(shapes) = c("stock", "No Impactor", "2.5 um Impactor", "5 um Impactor")
 
@@ -520,45 +494,6 @@ plotting.merged.df %>%
     theme(strip.text.x = element_text(size = 12))
   
 ggsave(paste(figures.dir, "figure-3b.png", sep=""), width = 12, height = 6)
-
-shapes = c(19, 17, 15)
-names(shapes) = c("stock", "Aerosol", "Direct")
-
-plotting.merged.df %>% 
-  filter(SNP %in% snps.to.plot) %>% 
-  select(Animal, Pair, Experiment, Condition, DPI, SNP, AF) %>% 
-  full_join(., sample.snp.cartesian.product) %>% 
-  mutate(AF = if_else(is.na(AF), 0, AF),
-         Experimental_Condition = if_else(Experiment == 19.0, "Aerosol v. Direct", "Impactor")
-         ) %>% 
-  distinct() %>% 
-  left_join(., snp.info) %>% 
-  mutate(Grouping = paste(Mutation, Pair, Animal, sep = "-")) %>% 
-  filter(Experimental_Condition == "Aerosol v. Direct") %>% 
-  mutate(Impactor = case_when(
-    Condition == "aerosol" ~ "Aerosol",
-    Condition == "direct" ~ "Direct",
-    Condition == "isolate stock" ~ "stock"
-  )) %>%  
-  ggplot(aes(x = DPI, y = AF, col = Pair, fill = Pair, group = Grouping, shape = Impactor)) +
-    geom_point(size = 3.5, alpha = 0.5) + 
-    geom_line(alpha = 0.5) + 
-    facet_wrap(~fct_reorder(Mutation, POS, min), nrow = 2) +
-    xlab("Days After Inital Donor Infection") + 
-    ylab("Allele Frequency") +
-    scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
-                       breaks =c("stock", "donor", "contact")) + 
-    scale_fill_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
-                     breaks =c("stock", "donor", "contact")) + 
-    scale_y_continuous(breaks = c(0, 0.5, 1)) + 
-    scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10)) + 
-    scale_shape_manual(values = shapes) + 
-    theme_bw(16) + 
-    theme(plot.title = element_text(hjust = 0.5)) +                                                           
-    theme(legend.position = "bottom") +
-    theme(strip.text.x = element_text(size = 12))
-  
-ggsave(paste(figures.dir, "figure_aerosol_v_direct_variants_over_time.png", sep=""), width = 12, height = 6)
 
 ```
 
