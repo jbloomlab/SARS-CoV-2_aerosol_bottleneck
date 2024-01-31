@@ -1,0 +1,39 @@
+# ======================================================== #
+#                                                          #
+#     Edit the information in this configuration file      #
+#                                                          #
+# ======================================================== #
+
+# ====== Attributes of the whole library ====== #
+attributes:
+  organism: SARS-CoV-2
+  strain: hCoV-19/HongKong/VM20109236/2020
+  collected_by: Hui-Ling Yen
+  collection_date: 2020
+  host: Syrian Hamster
+  host_disease: COVID-19
+  isolation_source: nasal
+
+# ======== Info for Illumina barcodes BioSamples ======== #
+runs: 
+
+  # Edit this data that goes into the SRA metadata table for the BioSample
+  accession: SAMN39709134
+  sample_id_columns: [Animal, Pair, Experiment, Condition, DPI, DPC, Replicate]
+  title_prefix: Illumina sequencing of SARS-CoV-2 amlified RNA
+  description: Illumina sequencing from SARS-CoV-2 infected Syrian Hamster nasal samples
+  strategy: RNA-Seq
+  source: VIRAL RNA
+  selection: PCR
+  layout: paired
+  platform: ILLUMINA
+  model: Illumina iSeq 100
+
+# =========== Info for uploading to SRA via FTP =========== #
+# Meaningful BioSample specific folder name for FTP upload
+ftp_subfolder: Hamster_Sequencing
+# These come from the SRA FTP upload instructions.
+ftp_username: subftp
+ftp_account_folder: uploads/wwh22_uw.edu_e2LIS4RJ
+
+  
