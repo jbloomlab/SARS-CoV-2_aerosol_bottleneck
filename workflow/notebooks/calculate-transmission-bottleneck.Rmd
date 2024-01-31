@@ -415,16 +415,13 @@ expanded.merged.df = filtered.merged.df %>%
 # Condition order 
 shortened.condition.order = c("none",
                     "5 um",
-                    "2 um",
-                    "aerosol",
-                    "direct")
+                    "2 um")
 
 # Fix the fact that the same donor was used for aerosol and direct conditions
 ivc.cage.variants = expanded.merged.df %>% 
   filter(Condition == "no impactor/IVC cage") 
 expanded.merged.df = expanded.merged.df %>% 
   filter(Condition != "no impactor/IVC cage") %>% 
-  bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
   mutate(Condition = case_when(
     Condition == "no impactor" ~ "none",
     Condition == "5 um impactor" ~ "5 um",

@@ -173,7 +173,6 @@ ivc.cage.variants = filtered.merged.df %>%
 
 amended.merged.df = filtered.merged.df %>% 
   filter(Condition != "no impactor/IVC cage") %>% 
-  bind_rows(ivc.cage.variants.direct, ivc.cage.variants.aerosol) %>% 
   mutate(Condition = case_when(
     Condition == "no impactor" ~ "none",
     Condition == "5 um impactor" ~ "5 um",
@@ -402,7 +401,7 @@ ggsave(paste(figures.dir, "variants-over-time-and-condition-all-snps.png", sep="
 
 ```
 
-```{r Summarized Variants All SNPs , fig.align='center', fig.width=20, fig.height=5, message=FALSE}
+```{r Summarized Variants All SNPs long, fig.align='center', fig.width=20, fig.height=5, message=FALSE}
 
 # Get the Cartesian project of all snps to plot and conditions
 sample.snp.cartesian.product = amended.merged.df %>% 
