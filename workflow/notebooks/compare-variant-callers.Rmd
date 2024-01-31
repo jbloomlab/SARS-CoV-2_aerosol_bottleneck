@@ -172,4 +172,50 @@ This drastically improves the overlap between the callers. Now, essentially, the
 
 In the next notebook, I'll see how the correlation between replicates look between callers and combine the variants. 
 
+## Paper Figures 
 
+Below is the figure that will be included in the paper. It's identical to the plots above, but I'm excluding the samples that aren't included in the paper (aerosol and direct contact samples).
+
+
+```{r Supplemental Figure 2, message=F, fig.align='center', fig.width=8, fig.height=5}
+
+# Samples not included in the paper
+aerosol_direct_samples = sample.metadata.df %>% 
+  filter(Experiment %in% c(19)) %>% 
+  pull(Run) %>% 
+  unique()
+
+filtered.variants.df = variants.df %>% 
+  filter(!Run %in% aerosol_direct_samples) %>% 
+  filter(
+    AF >= min.freq,
+    DP >= min.depth,
+    ADF + ADR >= min.obsv
+    )
+
+supplemental.figure.upset = filtered.variants.df %>% 
+  select(Run, SNP, CALLER) %>% 
+  mutate(Identifier = paste(Run, SNP, sep = "-")) %>% 
+  select(Identifier, CALLER) %>% 
+  distinct() %>% 
+  mutate(Tally = 1) %>% 
+  pivot_wider(names_from = "CALLER", values_from = "Tally", values_fill = 0) %>% 
+  as.data.frame(row.names = Identifier) %>%
+  upset(., 
+        sets = c("lofreq", "varscan", "ivar", "pysam"),
+        sets.bar.color = "#56B4E9",
+        order.by = "freq",
+        empty.intersections = "on",
+        text.scale = 1.5)
+
+filtered.upset
+
+```
+
+```{r Save Supplemental Figure 2, echo=FALSE, message=F}
+
+png(file=paste(figures.dir, "supplemental-figre-2.png", sep=""), width=8, height=5, units="in", res = 300)
+supplemental.figure.upset
+dev.off()
+
+```

@@ -440,3 +440,27 @@ Additionally, the many of the variants detected in multiple cages overlap with p
 
 *Of note, for plots that involve quantitative metrics, I'm using the average across all shared SNPs.* 
 
+
+## Paper Figures 
+
+Below is the figure that will be included in the paper. It's identical to the plots above, but I'm excluding the samples that aren't included in the paper (aerosol and direct contact samples).
+
+```{r Supplemental Figure 4, fig.align='center', fig.width=12, fig.height=6}
+
+merged.df %>% 
+  filter(!is.na(Pair)) %>% 
+  filter(!SNP %in% fixed.isolate.variants) %>% 
+  filter(Experiment != 19) %>% 
+  mutate(Pair = if_else(Pair == 'contact', 'recipient', 'donor')) %>% 
+  ggplot(aes(x = AF, fill = factor(Pair, levels = c("donor", "recipient")))) + 
+    geom_histogram(bins = 30) +
+    facet_wrap(~factor(Pair, levels = c("donor", "recipient")), ncol=2) + 
+    xlab("Allele Frequency") + 
+    ylab("Allele Count") + 
+    scale_fill_manual(values = c("darkblue", "darkred"), name="") + 
+    theme_bw(18) + 
+    theme(legend.position = "bottom")
+
+ggsave(paste(figures.dir, "supplemental-figure-6.png", sep=""), width = 12, height = 6, dpi = 300)
+
+```

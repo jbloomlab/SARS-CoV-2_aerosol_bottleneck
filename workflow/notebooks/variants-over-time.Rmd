@@ -500,6 +500,7 @@ plotting.merged.df %>%
     Condition == "2 um" ~ "2.5 um Impactor",
      Condition == "isolate stock" ~ "stock"
   )) %>%  
+  mutate(Pair = if_else(Pair == 'contact', 'recipient', 'donor')) %>% 
   ggplot(aes(x = DPI, y = AF, col = Pair, fill = Pair, group = Grouping, shape = Impactor)) +
     geom_point(size = 3.5, alpha = 0.5) + 
     geom_line(alpha = 0.5) + 
@@ -507,9 +508,9 @@ plotting.merged.df %>%
     xlab("Days After Inital Donor Infection") + 
     ylab("Allele Frequency") +
     scale_color_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
-                       breaks =c("stock", "donor", "contact")) + 
+                       breaks =c("stock", "donor", "recipient")) + 
     scale_fill_manual(values = c("#bd00ba","#0013bd", "#bd0000"),
-                     breaks =c("stock", "donor", "contact")) + 
+                     breaks =c("stock", "donor", "recipient")) + 
     scale_y_continuous(breaks = c(0, 0.5, 1)) + 
     scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 10)) + 
     scale_shape_manual(values = shapes) + 
@@ -518,7 +519,7 @@ plotting.merged.df %>%
     theme(legend.position = "bottom") +
     theme(strip.text.x = element_text(size = 12))
   
-ggsave(paste(figures.dir, "figure_impactor_variants_over_time.png", sep=""), width = 12, height = 6)
+ggsave(paste(figures.dir, "figure-3b.png", sep=""), width = 12, height = 6)
 
 shapes = c(19, 17, 15)
 names(shapes) = c("stock", "Aerosol", "Direct")

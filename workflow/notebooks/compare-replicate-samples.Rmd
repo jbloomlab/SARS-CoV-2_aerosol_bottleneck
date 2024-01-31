@@ -352,3 +352,72 @@ ggsave(paste(figures.dir, "lowest_concordance_samples.png", sep=""), width = 10,
 
 ```
 
+## Paper Figures 
+
+Below is the figure that will be included in the paper. It's identical to the plots above, but I'm excluding the samples that aren't included in the paper (aerosol and direct contact samples).
+
+```{r Supplemental Figure 3a, fig.align='center', fig.width=6, fig.height=6}
+
+# Samples not included in the paper
+aerosol_direct_samples = sample.metadata.df %>% 
+  filter(Experiment %in% c(19)) %>% 
+  pull(Run) %>% 
+  unique()
+
+replicates.unfiltered.df = variant.df %>%
+  # Remove the isolate that isn't sequenced in duplicate. 
+  filter(Run != "HL-2162") %>% 
+  filter(!Run %in% aerosol_direct_samples) %>% 
+  # Unique run condition
+  mutate(Identifier = paste(Animal, DPI, sep="_"),
+         Replicate = paste("Replicate", Replicate, sep="_")
+         ) %>% 
+  select(POS, REF, ALT, AF, CALLER, Identifier, Replicate) %>% 
+  # Pivot wider on the replicate
+  pivot_wider(names_from = Replicate, values_from = AF, values_fill = 0) 
+
+replicates.unfiltered.df %>% 
+  ggplot(aes(x = Replicate_1, y = Replicate_2)) + 
+    geom_point() + 
+    xlab("Replicate 1") +
+    ylab("Repcliate 2") + 
+    facet_wrap(~CALLER) + 
+    theme_bw()
+
+ggsave(paste(figures.dir, "supplemental-figre-3a.png", sep=""), width = 6, height = 6, dpi = 300)
+
+```
+
+```{r Supplemental Figure 3b, fig.align='center', fig.width=6, fig.height=6}
+
+variant.df %>%
+  # Remove the isolate that isn't sequenced in duplicate. 
+  filter(Run != "HL-2162") %>% 
+  filter(!Run %in% aerosol_direct_samples) %>% 
+  # Pivot wider on the replicate
+  pivot_wider(id_cols=c(POS, REF, ALT, SNP, CALLER, Animal,
+                        Pair, Experiment, Condition, DPI, DPC,
+                        TCID50, RNA_Copies, Sequencing_Round),
+              names_from = Replicate,
+              values_from = c(AF),
+              names_prefix = "Replicate_", 
+              values_fill = 0) %>% 
+  # Calculate the mean difference 
+  mutate(Delta_AF = abs(Replicate_1 - Replicate_2)) %>% 
+  group_by(Animal, Experiment, Condition, DPI, TCID50, RNA_Copies) %>% 
+  summarize(Mean_Delta_AF = mean(Delta_AF)) %>% 
+  ungroup() %>% 
+  mutate(Label= paste(Animal, " ", DPI, "-DPI", sep="")) %>% 
+  # Plot the difference
+  ggplot(aes(x = RNA_Copies, y = Mean_Delta_AF, label = Label)) + 
+    geom_point() + 
+    xlab("Viral RNA Copies") + 
+    ylab("Mean Allele Frequency Difference") + 
+    theme_bw() + 
+    theme(legend.position = "none")
+  
+ggsave(paste(figures.dir, "supplemental-figre-3b.png", sep=""), width = 6, height = 6, dpi = 300)
+
+```
+
+
